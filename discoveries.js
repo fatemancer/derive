@@ -68,13 +68,12 @@ function createDiscoveryElement(discovery) {
     const dot = document.createElement('div');
     dot.className = 'discovery-dot';
     dot.style.cssText = `
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
         background-color: ${discovery.type.color};
         box-shadow: 0 0 10px ${discovery.type.color}, 0 0 20px white;
-        margin-bottom: 10px;
     `;
+    
+    // Play a subtle sound effect for discoveries
+    playDiscoverySound();
     
     // Create the investigate button
     const button = document.createElement('button');
@@ -115,6 +114,9 @@ function investigateDiscovery(discoveryId) {
     // Show the message
     statusMessage.textContent = discovery.type.message + ` (+${discovery.type.bonus} nautical miles)`;
     
+    // Show notification
+    showNotification(discovery.type.message + ` (+${discovery.type.bonus} nautical miles)`, 'info');
+    
     // Add to event history
     addEvent(`Investigated ${discovery.type.name} (+${discovery.type.bonus} nautical miles)`);
     
@@ -152,5 +154,37 @@ function removeDiscovery(discoveryId, wasInvestigated) {
                 element.remove();
             }, 2000);
         }
+    }
+}
+
+// Play a subtle sound effect for discoveries
+function playDiscoverySound() {
+    try {
+        // Create audio context
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create oscillator
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Configure sound
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 0.5); // A4
+        
+        // Configure volume
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1); // Fade in
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5); // Fade out
+        
+        // Connect nodes
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Play sound
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+        console.error("Error playing discovery sound:", error);
     }
 }

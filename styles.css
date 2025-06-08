@@ -7,7 +7,8 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    max-width: 600px;
+    max-width: 90%;
+    width: 600px;
     margin: 0 auto;
     padding: 20px;
     text-align: center;
@@ -16,6 +17,21 @@ body {
     overflow-x: hidden;
     position: relative;
     animation: dayNightCycle 60s infinite linear;
+}
+
+@media (max-width: 640px) {
+    body {
+        width: 95%;
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 28px;
+    }
+    
+    .resource {
+        font-size: 22px;
+    }
 }
 
 /* Day/Night Cycle Animation */
@@ -149,8 +165,55 @@ button {
     margin: 15px 8px;
     cursor: pointer;
     border-radius: 6px;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Add ripple effect */
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+button:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(20, 20);
+        opacity: 0;
+    }
+}
+
+button:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
 }
 
 .menu-btn {
@@ -178,6 +241,16 @@ button {
     backdrop-filter: blur(5px);
     display: none;
     z-index: 100;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.menu.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
 }
 
 .menu button {
@@ -187,6 +260,11 @@ button {
     margin: 5px 0;
     padding: 8px 12px;
     font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.menu button:hover {
+    background-color: rgba(79, 70, 229, 0.8);
 }
 
 .event-log {
@@ -198,13 +276,40 @@ button {
     max-height: 150px;
     overflow-y: auto;
     font-size: 14px;
+    transition: max-height 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .event-item {
     margin-bottom: 8px;
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeInRight 0.5s ease forwards;
+    opacity: 0;
+    transform: translateX(-10px);
+    position: relative;
+    padding-left: 15px;
 }
+
+.event-item::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+@keyframes fadeInRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.event-item:nth-child(1) { animation-delay: 0.1s; }
+.event-item:nth-child(2) { animation-delay: 0.2s; }
+.event-item:nth-child(3) { animation-delay: 0.3s; }
+.event-item:nth-child(4) { animation-delay: 0.4s; }
+.event-item:nth-child(5) { animation-delay: 0.5s; }
 
 .event-time {
     font-size: 12px;
@@ -242,7 +347,8 @@ button:disabled {
     font-size: 16px;
     margin-top: 20px;
     font-style: italic;
-    color: #bae6fd;
+    color: #e0f2fe;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Discovery animations */
@@ -271,7 +377,140 @@ button:disabled {
     transition: all 0.5s ease;
 }
 
+.discovery-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 10px currentColor, 0 0 20px white;
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 15px currentColor, 0 0 30px white;
+        transform: scale(1.1);
+    }
+    100% {
+        box-shadow: 0 0 10px currentColor, 0 0 20px white;
+        transform: scale(1);
+    }
+}
+
 .investigate-btn:hover {
     background-color: #0e7490;
     transform: translateY(-2px);
+}
+
+/* Journey Progress Bar */
+.journey-progress {
+    width: 100%;
+    margin: 20px 0;
+    position: relative;
+}
+
+.progress-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #0891b2, #4f46e5);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.milestones {
+    position: relative;
+    height: 20px;
+    margin-top: 5px;
+}
+
+.milestone {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Help Button and Tutorial */
+.help-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tutorial {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.tutorial.visible {
+    display: flex;
+}
+
+.tutorial-content {
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Notification System */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification.info {
+    border-left: 4px solid #3b82f6;
 }

@@ -9,12 +9,8 @@ function saveGameState() {
     
     localStorage.setItem('oceanDriftingSave', JSON.stringify(saveData));
     
-    // Show brief save confirmation
-    const originalText = statusMessage.textContent;
-    statusMessage.textContent = "Game saved successfully!";
-    setTimeout(() => {
-        statusMessage.textContent = originalText;
-    }, 2000);
+    // Show save notification
+    showNotification("Game saved successfully! ✅", "success");
 }
 
 // Load game state from localStorage
@@ -77,14 +73,7 @@ function exportSaveData() {
     linkElement.click();
     document.body.removeChild(linkElement);
     
-    statusMessage.textContent = "Game data exported successfully!";
-    setTimeout(() => {
-        if (gameState.isSailing) {
-            statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
-        } else {
-            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
-        }
-    }, 2000);
+    showNotification("Game data exported successfully! 📤", "success");
 }
 
 // Import save data from a file
@@ -126,25 +115,11 @@ function importSaveData(file) {
             // Add import event
             addEvent("Imported saved game data");
             
-            statusMessage.textContent = "Game data imported successfully!";
-            setTimeout(() => {
-                if (gameState.isSailing) {
-                    statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
-                } else {
-                    statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
-                }
-            }, 2000);
+            showNotification("Game data imported successfully! 📥", "success");
             
         } catch (error) {
             console.error("Error importing save:", error);
-            statusMessage.textContent = "Error importing save file. Invalid format.";
-            setTimeout(() => {
-                if (gameState.isSailing) {
-                    statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
-                } else {
-                    statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
-                }
-            }, 2000);
+            showNotification("Error importing save file. Invalid format. ❌", "error");
         }
     };
     

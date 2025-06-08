@@ -17,6 +17,7 @@
     <!-- Ocean Particles -->
     <div class="particles" id="particles"></div>
     
+    <button id="help-btn" class="help-btn">❓</button>
     <button id="menu-btn" class="menu-btn">☰ Menu</button>
     <div id="menu" class="menu">
         <button id="save-btn">💾 Save Game</button>
@@ -24,12 +25,39 @@
         <button id="import-btn">📥 Import Save</button>
         <input type="file" id="file-input" accept=".json">
     </div>
+    
+    <div id="tutorial" class="tutorial">
+        <div class="tutorial-content">
+            <h3>How to Play</h3>
+            <p>Welcome to Ocean Drifting! Your goal is to drift across the ocean and discover interesting items.</p>
+            <ul>
+                <li>Your ship automatically drifts, increasing your distance traveled</li>
+                <li>Watch for discoveries that appear on the horizon</li>
+                <li>Click "Investigate" to collect discoveries</li>
+                <li>Use "Drop Anchor" to pause your journey</li>
+            </ul>
+            <button id="tutorial-close">Got it!</button>
+        </div>
+    </div>
 
     <div class="game-container">
         <h1>🌊 Ocean Drifting 🌊</h1>
         
         <div class="resource">
             Distance Traveled: <span id="distance-count">0</span> nautical miles
+        </div>
+        
+        <div class="journey-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="milestones">
+                <span class="milestone" style="left: 20%">10</span>
+                <span class="milestone" style="left: 40%">25</span>
+                <span class="milestone" style="left: 60%">50</span>
+                <span class="milestone" style="left: 80%">75</span>
+                <span class="milestone" style="left: 100%">100</span>
+            </div>
         </div>
         
         <button id="anchor-btn">Drop Anchor</button>

@@ -21,6 +21,9 @@ const saveBtn = document.getElementById('save-btn');
 const exportBtn = document.getElementById('export-btn');
 const importBtn = document.getElementById('import-btn');
 const fileInput = document.getElementById('file-input');
+const helpBtn = document.getElementById('help-btn');
+const tutorial = document.getElementById('tutorial');
+const tutorialClose = document.getElementById('tutorial-close');
 
 // Anchor handler - stop/resume drifting
 anchorBtn.addEventListener('click', () => {
@@ -61,32 +64,62 @@ function startDrifting() {
 
 // Menu button event listener
 menuBtn.addEventListener('click', () => {
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    if (menu.classList.contains('visible')) {
+        menu.classList.remove('visible');
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+        setTimeout(() => {
+            menu.classList.add('visible');
+        }, 10);
+    }
 });
 
 // Close menu when clicking outside
 document.addEventListener('click', (event) => {
     if (!menu.contains(event.target) && event.target !== menuBtn) {
-        menu.style.display = 'none';
+        menu.classList.remove('visible');
+        setTimeout(() => {
+            menu.style.display = 'none';
+        }, 300);
     }
+});
+
+// Help button event listener
+helpBtn.addEventListener('click', () => {
+    tutorial.classList.add('visible');
+});
+
+// Tutorial close button
+tutorialClose.addEventListener('click', () => {
+    tutorial.classList.remove('visible');
 });
 
 // Save button event listener
 saveBtn.addEventListener('click', () => {
     saveGameState();
-    menu.style.display = 'none';
+    menu.classList.remove('visible');
+    setTimeout(() => {
+        menu.style.display = 'none';
+    }, 300);
 });
 
 // Export button event listener
 exportBtn.addEventListener('click', () => {
     exportSaveData();
-    menu.style.display = 'none';
+    menu.classList.remove('visible');
+    setTimeout(() => {
+        menu.style.display = 'none';
+    }, 300);
 });
 
 // Import button event listener
 importBtn.addEventListener('click', () => {
     fileInput.click();
-    menu.style.display = 'none';
+    menu.classList.remove('visible');
+    setTimeout(() => {
+        menu.style.display = 'none';
+    }, 300);
 });
 
 // File input change event listener
@@ -103,12 +136,20 @@ function initGame() {
         // If no save found, start a new game
         startDrifting();
         addEvent("Started a new journey");
+        
+        // Show tutorial for new players
+        setTimeout(() => {
+            tutorial.classList.add('visible');
+        }, 1000);
     } else {
         addEvent("Loaded saved game");
     }
     
     // Initialize particles
     createParticles();
+    
+    // Initialize progress bar
+    updateProgressBar();
 }
 
 // Initialize the game when the DOM is fully loaded
