@@ -3,122 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wood Idle Game</title>
+    <title>Ocean Drifting</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
             text-align: center;
-            background-color: #f5f5f5;
+            background: linear-gradient(to bottom, #1e3a8a, #0ea5e9);
+            color: white;
+            min-height: 100vh;
         }
         .game-container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            margin-top: 40px;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            color: #f0f9ff;
         }
         .resource {
-            font-size: 24px;
-            margin: 20px 0;
+            font-size: 28px;
+            margin: 30px 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
         button {
-            background-color: #4CAF50;
             border: none;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 16px;
-            margin: 10px 5px;
+            font-size: 18px;
+            margin: 15px 8px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
+            border-radius: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        button:hover:not(:disabled) {
-            background-color: #45a049;
+        #sail-btn {
+            background-color: #0891b2;
+        }
+        #sail-btn:hover:not(:disabled) {
+            background-color: #0e7490;
+            transform: translateY(-2px);
+        }
+        #anchor-btn {
+            background-color: #be123c;
+        }
+        #anchor-btn:hover:not(:disabled) {
+            background-color: #9f1239;
+            transform: translateY(-2px);
         }
         button:disabled {
-            background-color: #cccccc;
+            background-color: #64748b;
             cursor: not-allowed;
+            transform: none;
         }
-        .upgrade-info {
-            font-size: 14px;
-            color: #666;
+        .ocean-icon {
+            font-size: 24px;
+            margin: 0 5px;
+        }
+        .status {
+            font-size: 16px;
+            margin-top: 20px;
+            font-style: italic;
+            color: #bae6fd;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>Wood Idle Game</h1>
+        <h1>🌊 Ocean Drifting 🌊</h1>
         
         <div class="resource">
-            Wood: <span id="wood-count">0</span>
+            Distance Traveled: <span id="distance-count">0</span> nautical miles
         </div>
         
-        <button id="click-btn">Gather Wood</button>
+        <button id="sail-btn">Set Sail</button>
+        <button id="anchor-btn" disabled>Drop Anchor</button>
         
-        <div class="upgrades">
-            <button id="upgrade-btn" disabled>Buy Better Click (10 wood)</button>
-            <div class="upgrade-info" id="upgrade-info">Current click value: 1</div>
-        </div>
+        <div class="status" id="status-message">Your ship is anchored. Set sail to begin your journey.</div>
     </div>
 
     <script>
         // Game state object to track everything
         const gameState = {
-            wood: 0,
-            clickValue: 1,
-            upgrades: {
-                betterClick: {
-                    purchased: false,
-                    cost: 10,
-                    effect: 2 // Increases click value to 2
-                }
-            }
+            distance: 0,
+            isSailing: false,
+            sailingInterval: null
         };
 
         // DOM elements
-        const woodCount = document.getElementById('wood-count');
-        const clickBtn = document.getElementById('click-btn');
-        const upgradeBtn = document.getElementById('upgrade-btn');
-        const upgradeInfo = document.getElementById('upgrade-info');
+        const distanceCount = document.getElementById('distance-count');
+        const sailBtn = document.getElementById('sail-btn');
+        const anchorBtn = document.getElementById('anchor-btn');
+        const statusMessage = document.getElementById('status-message');
 
-        // Click handler - add wood based on current click value
-        clickBtn.addEventListener('click', () => {
-            gameState.wood += gameState.clickValue;
-            updateUI();
+        // Set Sail handler - start automatic drifting
+        sailBtn.addEventListener('click', () => {
+            if (!gameState.isSailing) {
+                gameState.isSailing = true;
+                
+                // Update distance every 2 seconds
+                gameState.sailingInterval = setInterval(() => {
+                    gameState.distance += 1;
+                    updateUI();
+                }, 2000);
+                
+                updateUI();
+            }
         });
 
-        // Upgrade handler - purchase better click if enough wood
-        upgradeBtn.addEventListener('click', () => {
-            const upgrade = gameState.upgrades.betterClick;
-            
-            if (gameState.wood >= upgrade.cost && !upgrade.purchased) {
-                gameState.wood -= upgrade.cost;
-                upgrade.purchased = true;
-                gameState.clickValue = upgrade.effect;
+        // Anchor handler - stop drifting
+        anchorBtn.addEventListener('click', () => {
+            if (gameState.isSailing) {
+                gameState.isSailing = false;
+                clearInterval(gameState.sailingInterval);
                 updateUI();
             }
         });
 
         // Update UI to reflect current game state
         function updateUI() {
-            // Update wood count
-            woodCount.textContent = gameState.wood;
+            // Update distance count
+            distanceCount.textContent = gameState.distance;
             
-            // Update upgrade button state
-            const upgrade = gameState.upgrades.betterClick;
-            upgradeBtn.disabled = gameState.wood < upgrade.cost || upgrade.purchased;
+            // Update button states
+            sailBtn.disabled = gameState.isSailing;
+            anchorBtn.disabled = !gameState.isSailing;
             
-            if (upgrade.purchased) {
-                upgradeBtn.textContent = "Better Click (Purchased)";
+            // Update status message
+            if (gameState.isSailing) {
+                statusMessage.textContent = "Your ship is drifting with the current. Enjoy the journey!";
+            } else {
+                statusMessage.textContent = "Your ship is anchored. Set sail to begin your journey.";
             }
-            
-            // Update click value info
-            upgradeInfo.textContent = `Current click value: ${gameState.clickValue}`;
         }
 
         // Initial UI update
