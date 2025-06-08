@@ -159,6 +159,69 @@
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
+        
+        .menu-btn {
+            background-color: #4f46e5;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 16px;
+        }
+        
+        .menu-btn:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+        }
+        
+        .menu {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background-color: rgba(15, 23, 42, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            display: none;
+            z-index: 100;
+        }
+        
+        .menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin: 5px 0;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
+        .event-log {
+            background-color: rgba(15, 23, 42, 0.7);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        
+        .event-item {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .event-time {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-right: 8px;
+        }
+        
+        #file-input {
+            display: none;
+        }
         #sail-btn {
             background-color: #0891b2;
         }
@@ -201,6 +264,14 @@
     <!-- Ocean Particles -->
     <div class="particles" id="particles"></div>
     
+    <button id="menu-btn" class="menu-btn">☰ Menu</button>
+    <div id="menu" class="menu">
+        <button id="save-btn">💾 Save Game</button>
+        <button id="export-btn">📤 Export Save</button>
+        <button id="import-btn">📥 Import Save</button>
+        <input type="file" id="file-input" accept=".json">
+    </div>
+
     <div class="game-container">
         <h1>🌊 Ocean Drifting 🌊</h1>
         
@@ -212,6 +283,11 @@
         <div id="discoveries-container"></div>
         
         <div class="status" id="status-message">Your ship is anchored. Set sail to begin your journey.</div>
+        
+        <div class="event-log" id="event-log">
+            <h3>Recent Events</h3>
+            <div id="events-container"></div>
+        </div>
     </div>
 
     <script>
@@ -222,7 +298,8 @@
             nextDiscoveryId: 0,
             isSailing: true,
             sailingInterval: null,
-            discoveryInterval: null
+            discoveryInterval: null,
+            eventHistory: [] // Array to store the last 10 events
         };
 
         // Discovery types with colors and messages
@@ -240,6 +317,13 @@
         const anchorBtn = document.getElementById('anchor-btn');
         const statusMessage = document.getElementById('status-message');
         const discoveriesContainer = document.getElementById('discoveries-container');
+        const eventsContainer = document.getElementById('events-container');
+        const menuBtn = document.getElementById('menu-btn');
+        const menu = document.getElementById('menu');
+        const saveBtn = document.getElementById('save-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const fileInput = document.getElementById('file-input');
 
         // Anchor handler - stop/resume drifting
         anchorBtn.addEventListener('click', () => {
@@ -264,6 +348,11 @@
             gameState.sailingInterval = setInterval(() => {
                 gameState.distance += 1;
                 updateUI();
+                
+                // Save game state every 10 distance units
+                if (gameState.distance % 10 === 0) {
+                    saveGameState();
+                }
             }, 2000);
             
             // Schedule discoveries every 15-30 seconds
@@ -380,11 +469,17 @@
             // Show the message
             statusMessage.textContent = discovery.type.message + ` (+${discovery.type.bonus} nautical miles)`;
             
+            // Add to event history
+            addEvent(`Investigated ${discovery.type.name} (+${discovery.type.bonus} nautical miles)`);
+            
             // Remove the discovery
             removeDiscovery(discoveryId, true);
             
             // Update UI
             updateUI();
+            
+            // Save game state
+            saveGameState();
         }
 
         // Remove a discovery from the game
@@ -418,10 +513,244 @@
         function updateUI() {
             // Update distance count
             distanceCount.textContent = gameState.distance;
+            
+            // Update events display
+            updateEventsDisplay();
+        }
+        
+        // Add an event to the history
+        function addEvent(message) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            const event = {
+                time: timeString,
+                message: message,
+                timestamp: now.getTime()
+            };
+            
+            // Add to the beginning of the array
+            gameState.eventHistory.unshift(event);
+            
+            // Keep only the last 10 events
+            if (gameState.eventHistory.length > 10) {
+                gameState.eventHistory.pop();
+            }
+            
+            // Update the display
+            updateEventsDisplay();
+        }
+        
+        // Update the events display
+        function updateEventsDisplay() {
+            eventsContainer.innerHTML = '';
+            
+            gameState.eventHistory.forEach(event => {
+                const eventElement = document.createElement('div');
+                eventElement.className = 'event-item';
+                eventElement.innerHTML = `<span class="event-time">${event.time}</span> ${event.message}`;
+                eventsContainer.appendChild(eventElement);
+            });
+        }
+        
+        // Save game state to localStorage
+        function saveGameState() {
+            const saveData = {
+                distance: gameState.distance,
+                isSailing: gameState.isSailing,
+                eventHistory: gameState.eventHistory,
+                savedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('oceanDriftingSave', JSON.stringify(saveData));
+            
+            // Show brief save confirmation
+            const originalText = statusMessage.textContent;
+            statusMessage.textContent = "Game saved successfully!";
+            setTimeout(() => {
+                statusMessage.textContent = originalText;
+            }, 2000);
+        }
+        
+        // Load game state from localStorage
+        function loadGameState() {
+            const saveData = localStorage.getItem('oceanDriftingSave');
+            if (!saveData) return false;
+            
+            try {
+                const parsedData = JSON.parse(saveData);
+                
+                // Restore game state
+                gameState.distance = parsedData.distance || 0;
+                gameState.eventHistory = parsedData.eventHistory || [];
+                
+                // Update sailing state if needed
+                if (gameState.isSailing !== parsedData.isSailing) {
+                    gameState.isSailing = parsedData.isSailing;
+                    
+                    if (gameState.isSailing) {
+                        startDrifting();
+                        anchorBtn.textContent = "Drop Anchor";
+                    } else {
+                        clearInterval(gameState.sailingInterval);
+                        clearTimeout(gameState.discoveryInterval);
+                        anchorBtn.textContent = "Resume Journey";
+                        statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+                    }
+                }
+                
+                // Update UI
+                updateUI();
+                
+                return true;
+            } catch (error) {
+                console.error("Error loading save:", error);
+                return false;
+            }
+        }
+        
+        // Export save data to a file
+        function exportSaveData() {
+            const saveData = {
+                distance: gameState.distance,
+                isSailing: gameState.isSailing,
+                eventHistory: gameState.eventHistory,
+                exportedAt: new Date().toISOString(),
+                gameVersion: "1.0"
+            };
+            
+            const dataStr = JSON.stringify(saveData, null, 2);
+            const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+            
+            const exportFileName = `ocean-drifting-save-${new Date().toISOString().slice(0, 10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileName);
+            linkElement.style.display = 'none';
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+            
+            statusMessage.textContent = "Game data exported successfully!";
+            setTimeout(() => {
+                if (gameState.isSailing) {
+                    statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
+                } else {
+                    statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+                }
+            }, 2000);
+        }
+        
+        // Import save data from a file
+        function importSaveData(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                try {
+                    const saveData = JSON.parse(event.target.result);
+                    
+                    // Validate the save data
+                    if (saveData.distance === undefined || saveData.eventHistory === undefined) {
+                        throw new Error("Invalid save file format");
+                    }
+                    
+                    // Stop current sailing if active
+                    if (gameState.isSailing) {
+                        clearInterval(gameState.sailingInterval);
+                        clearTimeout(gameState.discoveryInterval);
+                    }
+                    
+                    // Restore game state
+                    gameState.distance = saveData.distance;
+                    gameState.isSailing = saveData.isSailing;
+                    gameState.eventHistory = saveData.eventHistory;
+                    
+                    // Restart sailing if needed
+                    if (gameState.isSailing) {
+                        startDrifting();
+                        anchorBtn.textContent = "Drop Anchor";
+                    } else {
+                        anchorBtn.textContent = "Resume Journey";
+                        statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+                    }
+                    
+                    // Update UI
+                    updateUI();
+                    
+                    // Add import event
+                    addEvent("Imported saved game data");
+                    
+                    statusMessage.textContent = "Game data imported successfully!";
+                    setTimeout(() => {
+                        if (gameState.isSailing) {
+                            statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
+                        } else {
+                            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+                        }
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error("Error importing save:", error);
+                    statusMessage.textContent = "Error importing save file. Invalid format.";
+                    setTimeout(() => {
+                        if (gameState.isSailing) {
+                            statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
+                        } else {
+                            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+                        }
+                    }, 2000);
+                }
+            };
+            
+            reader.readAsText(file);
         }
 
-        // Start the game automatically
-        startDrifting();
+        // Menu button event listener
+        menuBtn.addEventListener('click', () => {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!menu.contains(event.target) && event.target !== menuBtn) {
+                menu.style.display = 'none';
+            }
+        });
+        
+        // Save button event listener
+        saveBtn.addEventListener('click', () => {
+            saveGameState();
+            menu.style.display = 'none';
+        });
+        
+        // Export button event listener
+        exportBtn.addEventListener('click', () => {
+            exportSaveData();
+            menu.style.display = 'none';
+        });
+        
+        // Import button event listener
+        importBtn.addEventListener('click', () => {
+            fileInput.click();
+            menu.style.display = 'none';
+        });
+        
+        // File input change event listener
+        fileInput.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                importSaveData(event.target.files[0]);
+            }
+        });
+        
+        // Try to load saved game state
+        if (!loadGameState()) {
+            // If no save found, start a new game
+            startDrifting();
+            addEvent("Started a new journey");
+        } else {
+            addEvent("Loaded saved game");
+        }
         
         // Create ocean particles
         function createParticles() {
