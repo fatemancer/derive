@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wood Idle Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .resource {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .upgrade-info {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Wood Idle Game</h1>
+        
+        <div class="resource">
+            Wood: <span id="wood-count">0</span>
+        </div>
+        
+        <button id="click-btn">Gather Wood</button>
+        
+        <div class="upgrades">
+            <button id="upgrade-btn" disabled>Buy Better Click (10 wood)</button>
+            <div class="upgrade-info" id="upgrade-info">Current click value: 1</div>
+        </div>
+    </div>
+
+    <script>
+        // Game state object to track everything
+        const gameState = {
+            wood: 0,
+            clickValue: 1,
+            upgrades: {
+                betterClick: {
+                    purchased: false,
+                    cost: 10,
+                    effect: 2 // Increases click value to 2
+                }
+            }
+        };
+
+        // DOM elements
+        const woodCount = document.getElementById('wood-count');
+        const clickBtn = document.getElementById('click-btn');
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        const upgradeInfo = document.getElementById('upgrade-info');
+
+        // Click handler - add wood based on current click value
+        clickBtn.addEventListener('click', () => {
+            gameState.wood += gameState.clickValue;
+            updateUI();
+        });
+
+        // Upgrade handler - purchase better click if enough wood
+        upgradeBtn.addEventListener('click', () => {
+            const upgrade = gameState.upgrades.betterClick;
+            
+            if (gameState.wood >= upgrade.cost && !upgrade.purchased) {
+                gameState.wood -= upgrade.cost;
+                upgrade.purchased = true;
+                gameState.clickValue = upgrade.effect;
+                updateUI();
+            }
+        });
+
+        // Update UI to reflect current game state
+        function updateUI() {
+            // Update wood count
+            woodCount.textContent = gameState.wood;
+            
+            // Update upgrade button state
+            const upgrade = gameState.upgrades.betterClick;
+            upgradeBtn.disabled = gameState.wood < upgrade.cost || upgrade.purchased;
+            
+            if (upgrade.purchased) {
+                upgradeBtn.textContent = "Better Click (Purchased)";
+            }
+            
+            // Update click value info
+            upgradeInfo.textContent = `Current click value: ${gameState.clickValue}`;
+        }
+
+        // Initial UI update
+        updateUI();
+    </script>
+</body>
+</html>
