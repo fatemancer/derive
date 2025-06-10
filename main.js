@@ -237,6 +237,7 @@ function updateVesselSchematic(vessel) {
         
         // Check if there's an upgrade installed in this slot
         const installedUpgrade = gameState.installedUpgrades.find(upgrade => upgrade.slotIndex === i);
+        console.log(`Checking slot ${i} for upgrades:`, installedUpgrade);
         if (installedUpgrade) {
             // Add the upgrade visual to the square
             const upgradeType = GAME_CONFIG.upgrades.find(u => u.id === installedUpgrade.upgradeId);
@@ -245,6 +246,14 @@ function updateVesselSchematic(vessel) {
                 upgradeIcon.className = 'upgrade-icon';
                 upgradeIcon.textContent = upgradeType.emoji;
                 upgradeIcon.title = upgradeType.name;
+                
+                // Add the same click event to the icon
+                upgradeIcon.addEventListener('click', (event) => {
+                    // Stop event from bubbling to prevent double triggering
+                    event.stopPropagation();
+                    showUpgradeMenu(i);
+                });
+                
                 square.appendChild(upgradeIcon);
                 square.classList.add('has-upgrade');
             }
@@ -282,10 +291,17 @@ function initGame() {
 
 // Show upgrade menu when a schematic slot is clicked
 function showUpgradeMenu(slotIndex) {
+    console.log("showUpgradeMenu called for slot", slotIndex);
+    console.log("Installed upgrades:", gameState.installedUpgrades);
+    
     // Check if there's already an upgrade in this slot
     const existingUpgrade = gameState.installedUpgrades.find(upgrade => upgrade.slotIndex === slotIndex);
+    console.log("Existing upgrade found:", existingUpgrade);
+    
     if (existingUpgrade) {
-        showNotification(`This slot already has a ${GAME_CONFIG.upgrades.find(u => u.id === existingUpgrade.upgradeId).name} installed.`, "info");
+        console.log("Showing sell menu for upgrade:", existingUpgrade);
+        // Show sell menu instead of upgrade menu
+        showSellMenu(slotIndex, existingUpgrade);
         return;
     }
     
@@ -495,6 +511,136 @@ function processAutomaticDiscoveryCollection() {
         updateUI();
         saveGameState();
     }
+}
+
+// Sell an installed upgrade
+function sellUpgrade(upgradeId, slotIndex, sellValue) {
+    // Find the upgrade in the installed upgrades array
+    const upgradeIndex = gameState.installedUpgrades.findIndex(
+        upgrade => upgrade.slotIndex === slotIndex && upgrade.upgradeId === upgradeId
+    );
+    
+    if (upgradeIndex === -1) return;
+    
+    // Find the upgrade configuration
+    const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgradeId);
+    if (!upgradeConfig) return;
+    
+    // Remove the upgrade from the array
+    gameState.installedUpgrades.splice(upgradeIndex, 1);
+    
+    // Add the sell value to the player's distance
+    gameState.distance += sellValue;
+    
+    // Show success message
+    showNotification(`Sold ${upgradeConfig.name} for ${sellValue} nautical miles!`, "success");
+    
+    // Add to event history
+    addEvent(`Sold ${upgradeConfig.name} from vessel slot ${slotIndex + 1} for ${sellValue} nautical miles`);
+    
+    // Update UI
+    updateUI();
+    updateVesselSchematic(vesselTypes[gameState.currentVesselIndex]);
+    
+    // Save game state
+    saveGameState();
+}
+
+// Show sell menu for an installed upgrade
+function showSellMenu(slotIndex, existingUpgrade) {
+    console.log("showSellMenu called", slotIndex, existingUpgrade);
+    
+    // Remove any existing menus
+    const existingMenus = document.querySelectorAll('.upgrade-menu');
+    existingMenus.forEach(menu => menu.remove());
+    
+    // Get the clicked square element
+    const square = document.querySelector(`.vessel-square[data-index="${slotIndex}"]`);
+    console.log("Square element:", square);
+    if (!square) {
+        console.error("Square element not found");
+        return;
+    }
+    
+    // Find the upgrade configuration
+    const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === existingUpgrade.upgradeId);
+    console.log("Upgrade config:", upgradeConfig);
+    if (!upgradeConfig) {
+        console.error("Upgrade configuration not found");
+        return;
+    }
+    
+    // Calculate sell value (2/3 of original cost)
+    const sellValue = Math.floor(upgradeConfig.cost * (2/3));
+    
+    // Create the sell menu
+    const sellMenu = document.createElement('div');
+    sellMenu.className = 'upgrade-menu sell-menu';
+    
+    // Add title
+    const menuTitle = document.createElement('div');
+    menuTitle.className = 'upgrade-menu-title';
+    menuTitle.textContent = 'Installed Upgrade';
+    sellMenu.appendChild(menuTitle);
+    
+    // Add upgrade info
+    const upgradeInfo = document.createElement('div');
+    upgradeInfo.className = 'upgrade-item';
+    upgradeInfo.innerHTML = `
+        <div class="upgrade-icon">${upgradeConfig.emoji}</div>
+        <div class="upgrade-info">
+            <div class="upgrade-name">${upgradeConfig.name}</div>
+            <div class="upgrade-description">${upgradeConfig.description}</div>
+            <div class="upgrade-sell-value">
+                Sell value: ${sellValue} nautical miles
+            </div>
+        </div>
+    `;
+    sellMenu.appendChild(upgradeInfo);
+    
+    // Add sell button
+    const sellButton = document.createElement('button');
+    sellButton.className = 'sell-upgrade-btn';
+    sellButton.textContent = 'Sell Upgrade';
+    sellButton.addEventListener('click', () => {
+        sellUpgrade(existingUpgrade.upgradeId, slotIndex, sellValue);
+        sellMenu.remove();
+    });
+    sellMenu.appendChild(sellButton);
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'upgrade-menu-close';
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        sellMenu.remove();
+    });
+    sellMenu.appendChild(closeButton);
+    
+    // Position the menu
+    document.body.appendChild(sellMenu);
+    
+    // Get the position of the square
+    const squareRect = square.getBoundingClientRect();
+    
+    // Position the menu near the square
+    sellMenu.style.position = 'fixed';
+    sellMenu.style.left = `${squareRect.left + squareRect.width + 10}px`;
+    sellMenu.style.top = `${squareRect.top}px`;
+    
+    // Add animation class
+    setTimeout(() => {
+        console.log("Adding visible class to sell menu");
+        sellMenu.classList.add('visible');
+    }, 10);
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenuOnClickOutside(event) {
+        if (!sellMenu.contains(event.target) && event.target !== square) {
+            sellMenu.remove();
+            document.removeEventListener('click', closeMenuOnClickOutside);
+        }
+    });
 }
 
 // Initialize the game when the DOM is fully loaded

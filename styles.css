@@ -889,6 +889,28 @@ button:disabled {
     pointer-events: all;
 }
 
+/* Sell menu specific styles */
+.sell-menu {
+    position: fixed;
+    right: auto;
+    top: auto;
+    transform: none;
+    z-index: 1001; /* Higher than regular upgrade menu */
+    opacity: 0;
+}
+
+.sell-menu.visible {
+    transform: none;
+    opacity: 1;
+}
+
+.upgrade-sell-value {
+    font-size: 14px;
+    color: #f59e0b;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
 .upgrade-menu-title {
     font-size: 18px;
     font-weight: bold;
@@ -966,6 +988,28 @@ button:disabled {
     color: #ef4444;
 }
 
+.upgrade-sell-value {
+    font-size: 14px;
+    color: #f59e0b;
+    margin-top: 5px;
+}
+
+.sell-upgrade-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: #b91c1c;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.sell-upgrade-btn:hover {
+    background-color: #991b1b;
+}
+
 .upgrade-menu-close {
     width: 100%;
     padding: 8px;
@@ -998,4 +1042,11 @@ button:disabled {
     margin: 0;
     background-color: transparent;
     animation: pulse 3s infinite;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
