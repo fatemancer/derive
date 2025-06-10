@@ -1,3 +1,11 @@
+// Game configuration constants
+const GAME_CONFIG = {
+    MAX_DISTANCE: 1000000, // Maximum distance in nautical miles for full progress bar
+    MAX_PERCENTAGE: 100,   // Maximum percentage for progress bar width
+    MIN_LOG_VALUE: 1,      // Minimum value for logarithmic scale (to avoid log(0))
+    LOG_BASE: 10           // Base for logarithmic scale (using powers of 10)
+};
+
 // Update UI to reflect current game state
 function updateUI(skipNotifications = false) {
     // Update distance count
@@ -10,15 +18,31 @@ function updateUI(skipNotifications = false) {
     // Events display is now only updated when new events are added
 }
 
-// Update progress bar based on distance
+// Update progress bar based on distance using logarithmic scale
 function updateProgressBar(skipNotifications = false) {
     const progressFill = document.getElementById('progress-fill');
-    const maxDistance = 100; // Maximum distance for full progress bar
-    const percentage = Math.min((gameState.distance / maxDistance) * 100, 100);
+    
+    // Safely calculate percentage with logarithmic scale and proper bounds checking
+    const distanceValue = Math.max(Number(gameState.distance) || 0, GAME_CONFIG.MIN_LOG_VALUE);
+    
+    // Calculate logarithmic percentage:
+    // 1. Get log of current distance and max distance
+    // 2. Normalize to percentage (0-100)
+    const logCurrent = Math.log10(distanceValue);
+    const logMax = Math.log10(GAME_CONFIG.MAX_DISTANCE);
+    const logPercentage = (logCurrent / logMax) * GAME_CONFIG.MAX_PERCENTAGE;
+    
+    // Ensure percentage is within bounds
+    const percentage = Math.min(
+        Math.max(logPercentage, 0),
+        GAME_CONFIG.MAX_PERCENTAGE
+    );
+    
+    // Apply the calculated width
     progressFill.style.width = `${percentage}%`;
     
     // Check for milestones
-    const milestones = [10, 25, 50, 75, 100];
+    const milestones = [10, 100, 1000, 10000, 100_000, 1_000_000];
     for (const milestone of milestones) {
         if (gameState.distance >= milestone && !gameState.reachedMilestones?.includes(milestone)) {
             // Initialize reachedMilestones array if it doesn't exist
