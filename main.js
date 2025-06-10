@@ -18,7 +18,8 @@ const gameState = {
         plank: 0,
         cloth: 0,
         copper: 0
-    }
+    },
+    installedUpgrades: [] // Array to store installed upgrades with their slot index
 };
 
 // DOM elements
@@ -264,11 +265,25 @@ function updateVesselSchematic(vessel) {
         square.className = 'vessel-square';
         square.dataset.index = i;
         
-        // Add click event listener for future interactivity
+        // Add click event listener for interactivity
         square.addEventListener('click', () => {
-            // This will be implemented later
-            console.log(`Clicked vessel square ${i}`);
+            showUpgradeMenu(i);
         });
+        
+        // Check if there's an upgrade installed in this slot
+        const installedUpgrade = gameState.installedUpgrades.find(upgrade => upgrade.slotIndex === i);
+        if (installedUpgrade) {
+            // Add the upgrade visual to the square
+            const upgradeType = GAME_CONFIG.upgrades.find(u => u.id === installedUpgrade.upgradeId);
+            if (upgradeType) {
+                const upgradeIcon = document.createElement('div');
+                upgradeIcon.className = 'upgrade-icon';
+                upgradeIcon.textContent = upgradeType.emoji;
+                upgradeIcon.title = upgradeType.name;
+                square.appendChild(upgradeIcon);
+                square.classList.add('has-upgrade');
+            }
+        }
         
         schematicContainer.appendChild(square);
     }
@@ -300,5 +315,267 @@ function initGame() {
     updateVesselUI();
 }
 
+// Show upgrade menu when a schematic slot is clicked
+function showUpgradeMenu(slotIndex) {
+    // Check if there's already an upgrade in this slot
+    const existingUpgrade = gameState.installedUpgrades.find(upgrade => upgrade.slotIndex === slotIndex);
+    if (existingUpgrade) {
+        showNotification(`This slot already has a ${GAME_CONFIG.upgrades.find(u => u.id === existingUpgrade.upgradeId).name} installed.`, "info");
+        return;
+    }
+    
+    // Remove any existing upgrade menus
+    const existingMenus = document.querySelectorAll('.upgrade-menu');
+    existingMenus.forEach(menu => menu.remove());
+    
+    // Get the clicked square element
+    const square = document.querySelector(`.vessel-square[data-index="${slotIndex}"]`);
+    if (!square) return;
+    
+    // Create the upgrade menu
+    const upgradeMenu = document.createElement('div');
+    upgradeMenu.className = 'upgrade-menu';
+    
+    // Add title
+    const menuTitle = document.createElement('div');
+    menuTitle.className = 'upgrade-menu-title';
+    menuTitle.textContent = 'Available Upgrades';
+    upgradeMenu.appendChild(menuTitle);
+    
+    // Add upgrades list
+    const upgradesList = document.createElement('div');
+    upgradesList.className = 'upgrades-list';
+    
+    // Add each available upgrade
+    GAME_CONFIG.upgrades.forEach(upgrade => {
+        const upgradeItem = document.createElement('div');
+        upgradeItem.className = 'upgrade-item';
+        
+        // Check if player has enough resources
+        const canAfford = gameState.distance >= upgrade.cost;
+        
+        upgradeItem.innerHTML = `
+            <div class="upgrade-icon">${upgrade.emoji}</div>
+            <div class="upgrade-info">
+                <div class="upgrade-name">${upgrade.name}</div>
+                <div class="upgrade-description">${upgrade.description}</div>
+                <div class="upgrade-cost ${canAfford ? 'can-afford' : 'cannot-afford'}">
+                    Cost: ${upgrade.cost} nautical miles
+                </div>
+            </div>
+        `;
+        
+        // Add click event to install the upgrade
+        upgradeItem.addEventListener('click', () => {
+            installUpgrade(upgrade.id, slotIndex);
+            upgradeMenu.remove();
+        });
+        
+        // Disable if can't afford
+        if (!canAfford) {
+            upgradeItem.classList.add('disabled');
+            upgradeItem.title = "Not enough nautical miles";
+        }
+        
+        upgradesList.appendChild(upgradeItem);
+    });
+    
+    upgradeMenu.appendChild(upgradesList);
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'upgrade-menu-close';
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        upgradeMenu.remove();
+    });
+    upgradeMenu.appendChild(closeButton);
+    
+    // Position the menu near the clicked square
+    const squareRect = square.getBoundingClientRect();
+    document.body.appendChild(upgradeMenu);
+    
+    const menuRect = upgradeMenu.getBoundingClientRect();
+    
+    // Position the menu centered above the square
+    upgradeMenu.style.left = `${squareRect.left + (squareRect.width / 2) - (menuRect.width / 2)}px`;
+    upgradeMenu.style.top = `${squareRect.top - menuRect.height - 10}px`;
+    
+    // Make sure the menu is fully visible
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Adjust horizontal position if needed
+    if (parseFloat(upgradeMenu.style.left) < 10) {
+        upgradeMenu.style.left = '10px';
+    } else if (parseFloat(upgradeMenu.style.left) + menuRect.width > viewportWidth - 10) {
+        upgradeMenu.style.left = `${viewportWidth - menuRect.width - 10}px`;
+    }
+    
+    // Adjust vertical position if needed
+    if (parseFloat(upgradeMenu.style.top) < 10) {
+        upgradeMenu.style.top = `${squareRect.bottom + 10}px`;
+    }
+    
+    // Add animation class
+    setTimeout(() => {
+        upgradeMenu.classList.add('visible');
+    }, 10);
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenuOnClickOutside(event) {
+        if (!upgradeMenu.contains(event.target) && event.target !== square) {
+            upgradeMenu.remove();
+            document.removeEventListener('click', closeMenuOnClickOutside);
+        }
+    });
+}
+
+// Install an upgrade in a schematic slot
+function installUpgrade(upgradeId, slotIndex) {
+    // Find the upgrade configuration
+    const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgradeId);
+    if (!upgradeConfig) return;
+    
+    // Check if player has enough resources
+    if (gameState.distance < upgradeConfig.cost) {
+        showNotification(`Not enough nautical miles to install ${upgradeConfig.name}. Need ${upgradeConfig.cost}.`, "error");
+        return;
+    }
+    
+    // Deduct the cost
+    gameState.distance -= upgradeConfig.cost;
+    
+    // Add the upgrade to installed upgrades
+    gameState.installedUpgrades.push({
+        upgradeId: upgradeId,
+        slotIndex: slotIndex,
+        installedAt: new Date().toISOString()
+    });
+    
+    // Show success message
+    showNotification(`Successfully installed ${upgradeConfig.name}!`, "success");
+    
+    // Add to event history
+    addEvent(`Installed ${upgradeConfig.name} in vessel slot ${slotIndex + 1}`);
+    
+    // Update UI
+    updateUI();
+    updateVesselSchematic(vesselTypes[gameState.currentVesselIndex]);
+    
+    // Save game state
+    saveGameState();
+}
+
+// Process automatic discovery collection based on installed upgrades
+function processAutomaticDiscoveryCollection() {
+    // Find all autocollector upgrades
+    const autocollectors = gameState.installedUpgrades.filter(upgrade => {
+        const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgrade.upgradeId);
+        return upgradeConfig && upgradeConfig.effect.type === 'autocollect';
+    });
+    
+    // If no autocollectors, do nothing
+    if (autocollectors.length === 0) return;
+    
+    // For each discovery, check if it should be auto-collected
+    const discoveriesToCollect = [];
+    
+    gameState.discoveries.forEach(discovery => {
+        // For each autocollector, check if it triggers
+        for (const collector of autocollectors) {
+            const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === collector.upgradeId);
+            
+            // Roll for chance to collect
+            if (Math.random() < upgradeConfig.effect.chance) {
+                discoveriesToCollect.push(discovery.id);
+                break; // Only collect once per discovery
+            }
+        }
+    });
+    
+    // Collect the discoveries
+    discoveriesToCollect.forEach(id => {
+        // Find the discovery
+        const discoveryIndex = gameState.discoveries.findIndex(d => d.id === id);
+        if (discoveryIndex === -1) return;
+        
+        const discovery = gameState.discoveries[discoveryIndex];
+        
+        // Apply the distance bonus
+        gameState.distance += discovery.type.bonus;
+        
+        // Check if this discovery provides a resource
+        if (discovery.type.resource) {
+            // Increment the resource count
+            gameState.resources[discovery.type.resource]++;
+            
+            // Find the resource details
+            const resourceDetails = resourceTypes.find(r => r.id === discovery.type.resource);
+            if (resourceDetails) {
+                // Add to event history
+                addEvent(`Autocollector found ${discovery.type.name} (+${discovery.type.bonus} nautical miles, +1 ${resourceDetails.name})`);
+            }
+        } else {
+            // Add to event history
+            addEvent(`Autocollector found ${discovery.type.name} (+${discovery.type.bonus} nautical miles)`);
+        }
+        
+        // Remove the discovery
+        removeDiscovery(id, true);
+    });
+    
+    // Update UI if any discoveries were collected
+    if (discoveriesToCollect.length > 0) {
+        updateUI();
+        saveGameState();
+    }
+}
+
 // Initialize the game when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initGame);
+
+// Add autocollector processing to the sailing interval
+const originalStartDrifting = startDrifting;
+startDrifting = function(skipNotifications = false) {
+    originalStartDrifting(skipNotifications);
+    
+    // Add autocollector processing
+    const autoCollectInterval = setInterval(() => {
+        if (gameState.isSailing) {
+            processAutomaticDiscoveryCollection();
+        }
+    }, 5000); // Check every 5 seconds
+    
+    // Store the interval ID
+    gameState.autoCollectInterval = autoCollectInterval;
+};
+
+// Clear autocollector interval when dropping anchor
+const originalAnchorHandler = anchorBtn.onclick;
+anchorBtn.onclick = function() {
+    if (gameState.isSailing) {
+        // Clear autocollector interval
+        clearInterval(gameState.autoCollectInterval);
+    }
+    
+    // Call original handler
+    if (originalAnchorHandler) {
+        originalAnchorHandler.call(this);
+    } else {
+        // Fallback to the event listener logic
+        if (gameState.isSailing) {
+            // Drop anchor - pause the journey
+            gameState.isSailing = false;
+            clearInterval(gameState.sailingInterval);
+            clearTimeout(gameState.discoveryInterval);
+            anchorBtn.textContent = "Resume Journey";
+            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
+        } else {
+            // Resume journey
+            gameState.isSailing = true;
+            startDrifting(false); // Show notifications during normal gameplay
+            anchorBtn.textContent = "Drop Anchor";
+        }
+    }
+};

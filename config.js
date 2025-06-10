@@ -9,6 +9,21 @@ const GAME_CONFIG = {
         { id: 'copper', name: 'Copper', emoji: '🔶', rarity: 5 }
     ],
     
+    // Upgrades settings
+    upgrades: [
+        {
+            id: 'autocollector',
+            name: 'Autocollector',
+            emoji: '🧲',
+            description: 'Automatically collects discoveries with a 10% chance',
+            cost: 100,
+            effect: {
+                type: 'autocollect',
+                chance: 1
+            }
+        }
+    ],
+    
     // Vessel settings
     vessels: [
         {

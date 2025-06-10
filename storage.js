@@ -13,6 +13,7 @@ function saveGameState() {
             cloth: 0,
             copper: 0
         },
+        installedUpgrades: gameState.installedUpgrades || [],
         savedAt: new Date().toISOString()
     };
     
@@ -44,6 +45,9 @@ function loadGameState() {
             cloth: 0,
             copper: 0
         };
+        
+        // Load installed upgrades
+        gameState.installedUpgrades = parsedData.installedUpgrades || [];
         
         // Update sailing state
         gameState.isSailing = parsedData.isSailing;
@@ -84,8 +88,9 @@ function exportSaveData() {
             cloth: 0,
             copper: 0
         },
+        installedUpgrades: gameState.installedUpgrades || [],
         exportedAt: new Date().toISOString(),
-        gameVersion: "1.2"
+        gameVersion: "1.3"
     };
     
     const dataStr = JSON.stringify(saveData, null, 2);
@@ -138,6 +143,9 @@ function importSaveData(file) {
                 cloth: 0,
                 copper: 0
             };
+            
+            // Load installed upgrades
+            gameState.installedUpgrades = saveData.installedUpgrades || [];
             
             // Restart sailing if needed
             if (gameState.isSailing) {
