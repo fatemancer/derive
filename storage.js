@@ -25,19 +25,18 @@ function loadGameState() {
         gameState.distance = parsedData.distance || 0;
         gameState.eventHistory = parsedData.eventHistory || [];
         
-        // Update sailing state if needed
-        if (gameState.isSailing !== parsedData.isSailing) {
-            gameState.isSailing = parsedData.isSailing;
-            
-            if (gameState.isSailing) {
-                startDrifting();
-                anchorBtn.textContent = "Drop Anchor";
-            } else {
-                clearInterval(gameState.sailingInterval);
-                clearTimeout(gameState.discoveryInterval);
-                anchorBtn.textContent = "Resume Journey";
-                statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
-            }
+        // Update sailing state
+        gameState.isSailing = parsedData.isSailing;
+        
+        // Always update button text and status based on loaded sailing state
+        if (gameState.isSailing) {
+            startDrifting();
+            anchorBtn.textContent = "Drop Anchor";
+        } else {
+            clearInterval(gameState.sailingInterval);
+            clearTimeout(gameState.discoveryInterval);
+            anchorBtn.textContent = "Resume Journey";
+            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
         }
         
         // Update UI
