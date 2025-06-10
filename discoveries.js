@@ -60,8 +60,8 @@ function spawnDiscovery() {
         discoveryType = regularDiscoveries[Math.floor(Math.random() * regularDiscoveries.length)];
     }
     
-    // Random position along the horizon (10-90% of width)
-    const positionX = 10 + Math.random() * 80;
+    // Fixed position in the upper left corner
+    const positionX = 10; // Fixed at 10% from the left
     
     // Create the discovery object
     const discovery = {
@@ -92,7 +92,7 @@ function createDiscoveryElement(discovery) {
     container.style.cssText = `
         position: absolute;
         left: ${discovery.position}%;
-        bottom: 20%;
+        top: 20%;
         display: flex;
         flex-direction: column;
         align-items: center;
