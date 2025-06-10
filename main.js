@@ -45,6 +45,7 @@ anchorBtn._clickHandler = function() {
         clearInterval(gameState.sailingInterval);
         clearTimeout(gameState.discoveryInterval);
         clearInterval(gameState.autoCollectInterval); // Clear autocollector interval
+        clearInterval(gameState.mapUpdateInterval); // Clear map update interval
         anchorBtn.textContent = "Resume Journey";
         statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
     } else {
@@ -561,6 +562,11 @@ function installUpgrade(upgradeId, slotIndex) {
     updateUI();
     updateVesselSchematic(vesselTypes[gameState.currentVesselIndex]);
     
+    // If this is a map upgrade, immediately process the map display
+    if (upgradeId === 'map') {
+        processMapDisplay();
+    }
+    
     // Save game state
     saveGameState();
 }
@@ -801,7 +807,205 @@ function showSellMenu(slotIndex, existingUpgrade) {
 // Initialize the game when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initGame);
 
-// Add autocollector processing to the sailing interval
+// Create and update the map grid
+function createMapGrid() {
+    // Check if map container already exists
+    let mapContainer = document.getElementById('map-grid-container');
+    
+    // If it doesn't exist, create it
+    if (!mapContainer) {
+        mapContainer = document.createElement('div');
+        mapContainer.id = 'map-grid-container';
+        mapContainer.className = 'map-grid-container';
+        
+        // Add title
+        const mapTitle = document.createElement('h3');
+        mapTitle.textContent = 'Navigation Map';
+        mapContainer.appendChild(mapTitle);
+        
+        // Create the grid
+        const gridElement = document.createElement('div');
+        gridElement.id = 'map-grid';
+        gridElement.className = 'map-grid';
+        mapContainer.appendChild(gridElement);
+        
+        // Add to the DOM before the discoveries container
+        const discoveriesContainer = document.getElementById('discoveries-container');
+        discoveriesContainer.parentNode.insertBefore(mapContainer, discoveriesContainer);
+    }
+    
+    // Get the grid element
+    const gridElement = document.getElementById('map-grid');
+    
+    // Clear existing grid
+    gridElement.innerHTML = '';
+    
+    // Create the grid cells (5x9)
+    const gridWidth = 5;
+    const gridHeight = 9;
+    
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'map-cell';
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            
+            // Mark the center cell as the vessel
+            if (x === Math.floor(gridWidth / 2) && y === Math.floor(gridHeight / 2)) {
+                cell.classList.add('vessel-cell');
+                
+                // Add vessel emoji based on current vessel
+                const currentVessel = vesselTypes[gameState.currentVesselIndex];
+                cell.textContent = currentVessel.emoji;
+            }
+            
+            gridElement.appendChild(cell);
+        }
+    }
+}
+
+// Update the map with discoveries
+function updateMapWithDiscoveries() {
+    // Check if map is installed
+    const hasMap = gameState.installedUpgrades.some(upgrade => {
+        const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgrade.upgradeId);
+        return upgradeConfig && upgradeConfig.effect.type === 'map';
+    });
+    
+    // If no map, hide the map container and return
+    const mapContainer = document.getElementById('map-grid-container');
+    if (!hasMap) {
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Show the map container
+    if (mapContainer) {
+        mapContainer.style.display = 'block';
+    } else {
+        // Create the map grid if it doesn't exist
+        createMapGrid();
+    }
+    
+    // Get the grid element
+    const gridElement = document.getElementById('map-grid');
+    if (!gridElement) return;
+    
+    // Clear any existing discovery markers
+    const existingMarkers = gridElement.querySelectorAll('.discovery-marker');
+    existingMarkers.forEach(marker => marker.remove());
+    
+    // Grid dimensions
+    const gridWidth = 5;
+    const gridHeight = 9;
+    
+    // Center coordinates
+    const centerX = Math.floor(gridWidth / 2);
+    const centerY = Math.floor(gridHeight / 2);
+    
+    // Add discovery markers
+    gameState.discoveries.forEach(discovery => {
+        // Create a marker for the discovery
+        const marker = document.createElement('div');
+        marker.className = 'discovery-marker';
+        marker.style.backgroundColor = discovery.type.color;
+        marker.dataset.discoveryId = discovery.id;
+        
+        // Calculate position (start at a random edge position)
+        let markerX, markerY;
+        
+        // If the marker already has a position, use it
+        if (discovery.mapX !== undefined && discovery.mapY !== undefined) {
+            markerX = discovery.mapX;
+            markerY = discovery.mapY;
+            
+            // Move the marker closer to the center at a slower pace
+            // Reduced from 0.1 to 0.05 to give players more time to interact
+            if (markerX < centerX) markerX += 0.05;
+            else if (markerX > centerX) markerX -= 0.05;
+            
+            if (markerY < centerY) markerY += 0.05;
+            else if (markerY > centerY) markerY -= 0.05;
+            
+            // Check if marker has reached the center
+            const distanceToCenter = Math.sqrt(
+                Math.pow(markerX - centerX, 2) +
+                Math.pow(markerY - centerY, 2)
+            );
+            
+            // If the marker is very close to the center, make it clickable
+            // Using a smaller threshold (0.3) to make it clickable only when very close to the vessel
+            if (distanceToCenter < 0.3) {
+                marker.classList.add('clickable');
+                
+                // Add click event to investigate
+                marker.addEventListener('click', () => {
+                    investigateDiscovery(discovery.id);
+                });
+            }
+        } else {
+            // Generate a random starting position at the edge
+            const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+            
+            switch (edge) {
+                case 0: // top
+                    markerX = Math.random() * gridWidth;
+                    markerY = 0;
+                    break;
+                case 1: // right
+                    markerX = gridWidth - 1;
+                    markerY = Math.random() * gridHeight;
+                    break;
+                case 2: // bottom
+                    markerX = Math.random() * gridWidth;
+                    markerY = gridHeight - 1;
+                    break;
+                case 3: // left
+                    markerX = 0;
+                    markerY = Math.random() * gridHeight;
+                    break;
+            }
+        }
+        
+        // Update the discovery with the new position
+        discovery.mapX = markerX;
+        discovery.mapY = markerY;
+        
+        // Position the marker
+        marker.style.left = `${(markerX / gridWidth) * 100}%`;
+        marker.style.top = `${(markerY / gridHeight) * 100}%`;
+        
+        // Add the marker to the grid
+        gridElement.appendChild(marker);
+    });
+}
+
+// Process map display
+function processMapDisplay() {
+    // Check if map is installed
+    const hasMap = gameState.installedUpgrades.some(upgrade => {
+        const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgrade.upgradeId);
+        return upgradeConfig && upgradeConfig.effect.type === 'map';
+    });
+    
+    if (hasMap) {
+        // Create or update the map grid
+        createMapGrid();
+        // Update the map with discoveries
+        updateMapWithDiscoveries();
+    } else {
+        // Hide the map if it exists
+        const mapContainer = document.getElementById('map-grid-container');
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
+    }
+}
+
+// Add autocollector and map processing to the sailing interval
 const originalStartDrifting = startDrifting;
 startDrifting = function(skipNotifications = false) {
     originalStartDrifting(skipNotifications);
@@ -813,8 +1017,16 @@ startDrifting = function(skipNotifications = false) {
         }
     }, 5000); // Check every 5 seconds
     
-    // Store the interval ID
+    // Add map update processing
+    const mapUpdateInterval = setInterval(() => {
+        if (gameState.isSailing) {
+            processMapDisplay();
+        }
+    }, 500); // Update map every half second for smoother movement
+    
+    // Store the interval IDs
     gameState.autoCollectInterval = autoCollectInterval;
+    gameState.mapUpdateInterval = mapUpdateInterval;
 };
 
 // No need for additional anchor button handling code here

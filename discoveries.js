@@ -68,7 +68,9 @@ function spawnDiscovery() {
         id: discoveryId,
         type: discoveryType,
         position: positionX,
-        timeRemaining: GAME_CONFIG.discoveries.duration / 1000 // Convert ms to seconds for display
+        timeRemaining: GAME_CONFIG.discoveries.duration / 1000, // Convert ms to seconds for display
+        mapX: undefined, // Will be initialized when map is displayed
+        mapY: undefined  // Will be initialized when map is displayed
     };
     
     // Add to game state
@@ -145,6 +147,36 @@ function investigateDiscovery(discoveryId) {
     
     const discovery = gameState.discoveries[discoveryIndex];
     
+    // Check if map is installed
+    const hasMap = gameState.installedUpgrades.some(upgrade => {
+        const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgrade.upgradeId);
+        return upgradeConfig && upgradeConfig.effect.type === 'map';
+    });
+    
+    // If map is installed, check if the discovery is close enough to investigate
+    if (hasMap) {
+        // Grid dimensions
+        const gridWidth = 5;
+        const gridHeight = 9;
+        
+        // Center coordinates
+        const centerX = Math.floor(gridWidth / 2);
+        const centerY = Math.floor(gridHeight / 2);
+        
+        // Calculate distance to center
+        const distanceToCenter = Math.sqrt(
+            Math.pow(discovery.mapX - centerX, 2) +
+            Math.pow(discovery.mapY - centerY, 2)
+        );
+        
+        // If the discovery is not close enough, don't allow investigation
+        // Using the same threshold (0.3) as in the map display
+        if (distanceToCenter >= 0.3) {
+            showNotification("The discovery is too far away to investigate. Wait for it to drift closer.", "error");
+            return;
+        }
+    }
+    
     // Apply the distance bonus
     gameState.distance += discovery.type.bonus;
     
@@ -181,6 +213,11 @@ function investigateDiscovery(discoveryId) {
     // Update UI
     updateUI();
     
+    // Update map if installed
+    if (hasMap) {
+        processMapDisplay();
+    }
+    
     // Save game state
     saveGameState();
 }
@@ -207,6 +244,24 @@ function removeDiscovery(discoveryId, wasInvestigated) {
             element.style.animation = 'fadeOut 2s ease-out forwards';
             setTimeout(() => {
                 element.remove();
+            }, 2000);
+        }
+    }
+    
+    // Remove map marker if it exists
+    const marker = document.querySelector(`.discovery-marker[data-discovery-id="${discoveryId}"]`);
+    if (marker) {
+        if (wasInvestigated) {
+            // Fade out quickly if investigated
+            marker.style.animation = 'fadeOut 0.5s ease-out forwards';
+            setTimeout(() => {
+                marker.remove();
+            }, 500);
+        } else {
+            // Fade out slowly if ignored
+            marker.style.animation = 'fadeOut 2s ease-out forwards';
+            setTimeout(() => {
+                marker.remove();
             }, 2000);
         }
     }

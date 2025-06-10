@@ -25,6 +25,21 @@ const GAME_CONFIG = {
                 type: 'autocollect',
                 chance: 0.1
             }
+        },
+        {
+            id: 'map',
+            name: 'Navigation Map',
+            emoji: '🗺️',
+            description: 'Shows a 5x9 grid map with your vessel in the center and nearby discoveries',
+            cost: 150,
+            materialCosts: [
+                { id: 'cloth', amount: 3 },
+                { id: 'plank', amount: 4 }
+            ],
+            effect: {
+                type: 'map',
+                gridSize: { width: 5, height: 9 }
+            }
         }
     ],
     
@@ -35,7 +50,7 @@ const GAME_CONFIG = {
             name: 'Raft',
             emoji: '🏊',
             description: 'A simple wooden raft',
-            driftSpeed: 1,
+            driftSpeed: 0.01,
             upgradeCost: 50,
             upgradeMaterialCosts: [
                 { id: 'wood', amount: 10 },
@@ -49,7 +64,7 @@ const GAME_CONFIG = {
             name: 'Small Boat',
             emoji: '🚣',
             description: 'A small rowing boat',
-            driftSpeed: 2,
+            driftSpeed: 0.02,
             upgradeCost: 200,
             upgradeMaterialCosts: [
                 { id: 'wood', amount: 20 },
@@ -64,7 +79,7 @@ const GAME_CONFIG = {
             name: 'Sailing Boat',
             emoji: '⛵',
             description: 'A proper sailing boat with a sail',
-            driftSpeed: 4,
+            driftSpeed: 0.05,
             upgradeCost: null, // No more upgrades for now
             upgradeMaterialCosts: null,
             upgradeMessage: null,

@@ -16,6 +16,11 @@ function updateUI(skipNotifications = false) {
     // Update resources display
     updateResourcesDisplay();
     
+    // Update map display if the map upgrade is installed
+    if (typeof processMapDisplay === 'function') {
+        processMapDisplay();
+    }
+    
     // Note: We no longer update events display on every UI update
     // Events display is now only updated when new events are added
 }
