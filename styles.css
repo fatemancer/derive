@@ -468,6 +468,19 @@ button:disabled {
 
 .discovery-container {
     transition: all 0.5s ease;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+#discoveries-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    width: 100%;
 }
 
 .discovery-dot {

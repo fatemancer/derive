@@ -19,7 +19,7 @@ const GAME_CONFIG = {
             cost: 100,
             effect: {
                 type: 'autocollect',
-                chance: 1
+                chance: 0.1
             }
         }
     ],

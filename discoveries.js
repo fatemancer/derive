@@ -90,14 +90,15 @@ function createDiscoveryElement(discovery) {
     container.className = 'discovery-container';
     container.id = `discovery-${discovery.id}`;
     container.style.cssText = `
-        position: absolute;
-        left: ${discovery.position}%;
-        top: 20%;
         display: flex;
         flex-direction: column;
         align-items: center;
         animation: fadeInFromHorizon 3s ease-out;
         z-index: 10;
+        background-color: rgba(15, 23, 42, 0.7);
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     `;
     
     // Create the discovery dot
