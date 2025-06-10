@@ -38,12 +38,13 @@ const tutorialClose = document.getElementById('tutorial-close');
 const upgradeVesselBtn = document.getElementById('upgrade-vessel-btn');
 
 // Anchor handler - stop/resume drifting
-anchorBtn.addEventListener('click', () => {
+anchorBtn._clickHandler = function() {
     if (gameState.isSailing) {
         // Drop anchor - pause the journey
         gameState.isSailing = false;
         clearInterval(gameState.sailingInterval);
         clearTimeout(gameState.discoveryInterval);
+        clearInterval(gameState.autoCollectInterval); // Clear autocollector interval
         anchorBtn.textContent = "Resume Journey";
         statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
     } else {
@@ -52,7 +53,10 @@ anchorBtn.addEventListener('click', () => {
         startDrifting(false); // Show notifications during normal gameplay
         anchorBtn.textContent = "Drop Anchor";
     }
-});
+};
+
+// Add the event listener
+anchorBtn.addEventListener('click', anchorBtn._clickHandler);
 
 // Start automatic drifting
 function startDrifting(skipNotifications = false) {
@@ -662,31 +666,5 @@ startDrifting = function(skipNotifications = false) {
     gameState.autoCollectInterval = autoCollectInterval;
 };
 
-// Clear autocollector interval when dropping anchor
-const originalAnchorHandler = anchorBtn.onclick;
-anchorBtn.onclick = function() {
-    if (gameState.isSailing) {
-        // Clear autocollector interval
-        clearInterval(gameState.autoCollectInterval);
-    }
-    
-    // Call original handler
-    if (originalAnchorHandler) {
-        originalAnchorHandler.call(this);
-    } else {
-        // Fallback to the event listener logic
-        if (gameState.isSailing) {
-            // Drop anchor - pause the journey
-            gameState.isSailing = false;
-            clearInterval(gameState.sailingInterval);
-            clearTimeout(gameState.discoveryInterval);
-            anchorBtn.textContent = "Resume Journey";
-            statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
-        } else {
-            // Resume journey
-            gameState.isSailing = true;
-            startDrifting(false); // Show notifications during normal gameplay
-            anchorBtn.textContent = "Drop Anchor";
-        }
-    }
-};
+// No need for additional anchor button handling code here
+// The event listener is now properly set up with autocollector handling
