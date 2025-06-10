@@ -31,9 +31,22 @@ body {
     width: 180px;
 }
 
-/* Adjust body padding to make room for the side menu */
+/* Right Panel */
+.right-panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 100;
+    width: 250px;
+}
+
+/* Adjust body padding to make room for the side menu and right panel */
 body {
     padding-left: 220px;
+    padding-right: 290px;
 }
 
 .menu-item {
@@ -78,11 +91,17 @@ body {
     body {
         max-width: 95%;
         padding-left: 200px;
+        padding-right: 270px;
     }
     
     .side-menu {
         left: 10px;
         width: 160px;
+    }
+    
+    .right-panel {
+        right: 10px;
+        width: 230px;
     }
 }
 
@@ -96,6 +115,7 @@ body {
 @media (max-width: 768px) {
     body {
         padding-left: 20px;
+        padding-right: 20px;
         padding-bottom: 70px;
     }
     
@@ -110,6 +130,12 @@ body {
         background-color: rgba(15, 23, 42, 0.9);
         padding: 10px;
         gap: 10px;
+    }
+    
+    .right-panel {
+        position: static;
+        width: 100%;
+        margin-top: 20px;
     }
     
     .menu-item {
@@ -517,7 +543,8 @@ button:disabled {
     background: rgba(0, 0, 0, 0.7);
     display: none;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    padding-right: 290px;
     z-index: 1000;
 }
 
@@ -539,7 +566,7 @@ button:disabled {
 .notification {
     position: fixed;
     top: 20px;
-    left: 20px;
+    right: 20px;
     padding: 12px 20px;
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.9);
@@ -549,6 +576,7 @@ button:disabled {
     opacity: 0;
     transition: all 0.3s ease;
     z-index: 1000;
+    width: 250px;
 }
 
 /* Resources Styling */
@@ -827,21 +855,23 @@ button:disabled {
 
 /* Upgrade Menu Styles */
 .upgrade-menu {
-    position: absolute;
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) translateY(10px);
     background-color: rgba(15, 23, 42, 0.95);
     border-radius: 12px;
     padding: 15px;
-    width: 300px;
+    width: 250px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    transform: translateY(10px);
     opacity: 0;
     transition: all 0.3s ease;
     pointer-events: none;
 }
 
 .upgrade-menu.visible {
-    transform: translateY(0);
+    transform: translateY(-50%) translateY(0);
     opacity: 1;
     pointer-events: all;
 }
