@@ -219,7 +219,7 @@ button:focus {
 .menu-btn {
     background-color: #4f46e5;
     position: absolute;
-    top: 20px;
+    top: -10px;
     right: 20px;
     padding: 8px 16px;
     font-size: 16px;
@@ -258,7 +258,7 @@ button:focus {
     width: 100%;
     text-align: left;
     margin: 5px 0;
-    padding: 8px 12px;
+    padding: 12px 12px;
     font-size: 14px;
     transition: background-color 0.2s;
 }
@@ -442,7 +442,7 @@ button:disabled {
 /* Help Button and Tutorial */
 .help-btn {
     position: absolute;
-    top: 20px;
+    top: -10px;
     left: 20px;
     width: 36px;
     height: 36px;

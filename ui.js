@@ -6,8 +6,8 @@ function updateUI() {
     // Update progress bar
     updateProgressBar();
     
-    // Update events display
-    updateEventsDisplay();
+    // Note: We no longer update events display on every UI update
+    // Events display is now only updated when new events are added
 }
 
 // Update progress bar based on distance
