@@ -4,6 +4,7 @@ function saveGameState() {
         distance: gameState.distance,
         isSailing: gameState.isSailing,
         eventHistory: gameState.eventHistory,
+        reachedMilestones: gameState.reachedMilestones || [],
         savedAt: new Date().toISOString()
     };
     
@@ -24,13 +25,14 @@ function loadGameState() {
         // Restore game state
         gameState.distance = parsedData.distance || 0;
         gameState.eventHistory = parsedData.eventHistory || [];
+        gameState.reachedMilestones = parsedData.reachedMilestones || [];
         
         // Update sailing state
         gameState.isSailing = parsedData.isSailing;
         
         // Always update button text and status based on loaded sailing state
         if (gameState.isSailing) {
-            startDrifting();
+            startDrifting(true); // Skip notifications during loading
             anchorBtn.textContent = "Drop Anchor";
         } else {
             clearInterval(gameState.sailingInterval);
@@ -39,8 +41,8 @@ function loadGameState() {
             statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
         }
         
-        // Update UI
-        updateUI();
+        // Update UI (skip notifications during loading)
+        updateUI(true);
         
         return true;
     } catch (error) {
@@ -55,6 +57,7 @@ function exportSaveData() {
         distance: gameState.distance,
         isSailing: gameState.isSailing,
         eventHistory: gameState.eventHistory,
+        reachedMilestones: gameState.reachedMilestones || [],
         exportedAt: new Date().toISOString(),
         gameVersion: "1.0"
     };
@@ -98,18 +101,19 @@ function importSaveData(file) {
             gameState.distance = saveData.distance;
             gameState.isSailing = saveData.isSailing;
             gameState.eventHistory = saveData.eventHistory;
+            gameState.reachedMilestones = saveData.reachedMilestones || [];
             
             // Restart sailing if needed
             if (gameState.isSailing) {
-                startDrifting();
+                startDrifting(true); // Skip notifications during import
                 anchorBtn.textContent = "Drop Anchor";
             } else {
                 anchorBtn.textContent = "Resume Journey";
                 statusMessage.textContent = "Your ship is anchored. Resume your journey to continue drifting.";
             }
             
-            // Update UI
-            updateUI();
+            // Update UI (skip notifications during import)
+            updateUI(true);
             
             // Add import event
             addEvent("Imported saved game data");

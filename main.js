@@ -37,17 +37,17 @@ anchorBtn.addEventListener('click', () => {
     } else {
         // Resume journey
         gameState.isSailing = true;
-        startDrifting();
+        startDrifting(false); // Show notifications during normal gameplay
         anchorBtn.textContent = "Drop Anchor";
     }
 });
 
 // Start automatic drifting
-function startDrifting() {
+function startDrifting(skipNotifications = false) {
     // Update distance every 2 seconds
     gameState.sailingInterval = setInterval(() => {
         gameState.distance += 1;
-        updateUI();
+        updateUI(false); // Always show notifications during normal gameplay
         
         // Save game state every 10 distance units
         if (gameState.distance % 10 === 0) {
@@ -134,7 +134,7 @@ function initGame() {
     // Try to load saved game state
     if (!loadGameState()) {
         // If no save found, start a new game
-        startDrifting();
+        startDrifting(false); // Show notifications for new game
         addEvent("Started a new journey");
         
         // Show tutorial for new players
@@ -148,8 +148,8 @@ function initGame() {
     // Initialize particles
     createParticles();
     
-    // Initialize progress bar
-    updateProgressBar();
+    // Initialize progress bar (skip notifications during initialization)
+    updateProgressBar(true);
 }
 
 // Initialize the game when the DOM is fully loaded

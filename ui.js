@@ -1,17 +1,17 @@
 // Update UI to reflect current game state
-function updateUI() {
+function updateUI(skipNotifications = false) {
     // Update distance count
     distanceCount.textContent = gameState.distance;
     
     // Update progress bar
-    updateProgressBar();
+    updateProgressBar(skipNotifications);
     
     // Note: We no longer update events display on every UI update
     // Events display is now only updated when new events are added
 }
 
 // Update progress bar based on distance
-function updateProgressBar() {
+function updateProgressBar(skipNotifications = false) {
     const progressFill = document.getElementById('progress-fill');
     const maxDistance = 100; // Maximum distance for full progress bar
     const percentage = Math.min((gameState.distance / maxDistance) * 100, 100);
@@ -29,9 +29,11 @@ function updateProgressBar() {
             // Add milestone to reached milestones
             gameState.reachedMilestones.push(milestone);
             
-            // Show milestone notification
-            showNotification(`Milestone reached: ${milestone} nautical miles! 🎉`, 'success');
-            addEvent(`Reached ${milestone} nautical miles`);
+            // Only show notifications and add events if not skipping notifications
+            if (!skipNotifications) {
+                showNotification(`Milestone reached: ${milestone} nautical miles! 🎉`, 'success');
+                addEvent(`Reached ${milestone} nautical miles`);
+            }
         }
     }
 }
