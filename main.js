@@ -183,6 +183,15 @@ function upgradeVessel() {
     // Add to event history
     addEvent(`Upgraded from ${currentVessel.name} to ${nextVessel.name}`);
     
+    // Add visual effect to vessel schematic
+    const schematicContainer = document.getElementById('vessel-schematic');
+    if (schematicContainer) {
+        schematicContainer.classList.add('vessel-upgrading');
+        setTimeout(() => {
+            schematicContainer.classList.remove('vessel-upgrading');
+        }, 1000);
+    }
+    
     // If currently sailing, restart with new speed
     if (gameState.isSailing) {
         clearInterval(gameState.sailingInterval);
@@ -205,6 +214,9 @@ function updateVesselUI() {
     if (vesselDisplay) {
         vesselDisplay.textContent = `${currentVessel.emoji} ${currentVessel.name}`;
     }
+    
+    // Update vessel schematic
+    updateVesselSchematic(currentVessel);
     
     // Update upgrade panel
     const upgradePanel = document.getElementById('vessel-upgrade-panel');
@@ -232,6 +244,33 @@ function updateVesselUI() {
             // Hide the panel if there are no more upgrades
             upgradePanel.style.display = 'none';
         }
+    }
+}
+
+// Update the vessel schematic based on vessel type
+function updateVesselSchematic(vessel) {
+    const schematicContainer = document.getElementById('vessel-schematic');
+    if (!schematicContainer) return;
+    
+    // Clear existing schematic
+    schematicContainer.innerHTML = '';
+    
+    // Set the layout class based on number of squares
+    schematicContainer.className = `vessel-schematic layout-${vessel.schematicSquares}`;
+    
+    // Create the squares
+    for (let i = 0; i < vessel.schematicSquares; i++) {
+        const square = document.createElement('div');
+        square.className = 'vessel-square';
+        square.dataset.index = i;
+        
+        // Add click event listener for future interactivity
+        square.addEventListener('click', () => {
+            // This will be implemented later
+            console.log(`Clicked vessel square ${i}`);
+        });
+        
+        schematicContainer.appendChild(square);
     }
 }
 

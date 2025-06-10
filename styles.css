@@ -686,6 +686,88 @@ button:disabled {
     }
 }
 
+/* Vessel schematic upgrade animation */
+.vessel-schematic.vessel-upgrading {
+    animation: vesselUpgrade 1s ease-out;
+}
+
+.vessel-schematic.vessel-upgrading .vessel-square {
+    animation: squareUpgrade 1s ease-out;
+}
+
+@keyframes squareUpgrade {
+    0% {
+        transform: scale(1);
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+    50% {
+        transform: scale(1.1);
+        background-color: rgba(14, 165, 233, 0.5);
+        box-shadow: 0 0 15px rgba(14, 165, 233, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
 .vessel-upgrading {
     animation: vesselUpgrade 1s ease-out;
+}
+
+/* Vessel Schematic Styles */
+.vessel-schematic {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px auto;
+    max-width: 300px;
+}
+
+.vessel-square {
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.vessel-square:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.vessel-square:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.vessel-square.empty {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vessel-square.empty:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Different vessel layouts */
+.vessel-schematic.layout-1 {
+    max-width: 70px;
+}
+
+.vessel-schematic.layout-4 {
+    max-width: 140px;
+}
+
+.vessel-schematic.layout-6 {
+    max-width: 210px;
 }

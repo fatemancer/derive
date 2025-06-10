@@ -11,32 +11,35 @@ const GAME_CONFIG = {
     
     // Vessel settings
     vessels: [
-        { 
-            id: 'raft', 
-            name: 'Raft', 
-            emoji: '🏊', 
-            description: 'A simple wooden raft', 
+        {
+            id: 'raft',
+            name: 'Raft',
+            emoji: '🏊',
+            description: 'A simple wooden raft',
             driftSpeed: 1,
             upgradeCost: 50,
-            upgradeMessage: "You've upgraded to a small boat! Drift speed increased."
+            upgradeMessage: "You've upgraded to a small boat! Drift speed increased.",
+            schematicSquares: 1 // Raft has 1 square
         },
-        { 
-            id: 'boat1', 
-            name: 'Small Boat', 
-            emoji: '🚣', 
-            description: 'A small rowing boat', 
+        {
+            id: 'boat1',
+            name: 'Small Boat',
+            emoji: '🚣',
+            description: 'A small rowing boat',
             driftSpeed: 2,
             upgradeCost: 200,
-            upgradeMessage: "You've upgraded to a sailing boat! Drift speed increased significantly."
+            upgradeMessage: "You've upgraded to a sailing boat! Drift speed increased significantly.",
+            schematicSquares: 4 // Small boat has 4 squares
         },
-        { 
-            id: 'boat2', 
-            name: 'Sailing Boat', 
-            emoji: '⛵', 
-            description: 'A proper sailing boat with a sail', 
+        {
+            id: 'boat2',
+            name: 'Sailing Boat',
+            emoji: '⛵',
+            description: 'A proper sailing boat with a sail',
             driftSpeed: 4,
             upgradeCost: null, // No more upgrades for now
-            upgradeMessage: null
+            upgradeMessage: null,
+            schematicSquares: 6 // Sailing boat has 6 squares
         }
     ],
     
