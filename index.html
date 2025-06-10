@@ -17,14 +17,23 @@
     <!-- Ocean Particles -->
     <div class="particles" id="particles"></div>
     
-    <button id="help-btn" class="help-btn">❓</button>
-    <button id="menu-btn" class="menu-btn">☰ Menu</button>
-    <div id="menu" class="menu">
-        <button id="save-btn">💾 Save Game</button>
-        <button id="export-btn">📤 Export Save</button>
-        <button id="import-btn">📥 Import Save</button>
-        <input type="file" id="file-input" accept=".json">
+    <!-- Side Menu -->
+    <div class="side-menu">
+        <div class="menu-item">
+            <button id="save-btn" class="menu-action">💾 Save Game</button>
+        </div>
+        <div class="menu-item">
+            <button id="export-btn" class="menu-action">📤 Export Save</button>
+        </div>
+        <div class="menu-item">
+            <button id="import-btn" class="menu-action">📥 Import Save</button>
+        </div>
+        <div class="menu-item">
+            <button id="help-btn" class="menu-action">❓ Help</button>
+        </div>
     </div>
+    
+    <input type="file" id="file-input" accept=".json" style="display: none;">
     
     <div id="tutorial" class="tutorial">
         <div class="tutorial-content">
@@ -43,89 +52,97 @@
     <div class="game-container">
         <h1>🌊 Ocean Drifting 🌊</h1>
         
-        <div class="resource">
-            Distance Traveled: <span id="distance-count">0</span> nautical miles
-        </div>
-        
-        <div class="resources-container">
-            <h3>Resources</h3>
-            <div class="resources-grid">
-                <div class="resource-item">
-                    <span class="resource-emoji">🌿</span>
-                    <span class="resource-name">Seaweed:</span>
-                    <span id="resource-seaweed" class="resource-count">0</span>
+        <div class="main-layout">
+            <!-- Left Column -->
+            <div class="game-column">
+                <div class="resource">
+                    Distance Traveled: <span id="distance-count">0</span> nautical miles
                 </div>
-                <div class="resource-item">
-                    <span class="resource-emoji">🪵</span>
-                    <span class="resource-name">Wood:</span>
-                    <span id="resource-wood" class="resource-count">0</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-emoji">📏</span>
-                    <span class="resource-name">Plank:</span>
-                    <span id="resource-plank" class="resource-count">0</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-emoji">🧵</span>
-                    <span class="resource-name">Cloth:</span>
-                    <span id="resource-cloth" class="resource-count">0</span>
-                </div>
-                <div class="resource-item">
-                    <span class="resource-emoji">🔶</span>
-                    <span class="resource-name">Copper:</span>
-                    <span id="resource-copper" class="resource-count">0</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="vessel-info">
-            <div id="vessel-display" class="vessel-display">🏊 Raft</div>
-            <div id="vessel-schematic" class="vessel-schematic"></div>
-        </div>
-        
-        <div id="vessel-upgrade-panel" class="vessel-upgrade-panel">
-            <h3>Vessel Upgrade</h3>
-            <div class="upgrade-details">
-                <div class="next-vessel">
-                    <span id="next-vessel-emoji" class="vessel-emoji">🚣</span>
-                    <span id="next-vessel-name">Small Boat</span>
-                </div>
-                <div class="upgrade-stats">
-                    <div class="upgrade-stat">
-                        <span class="stat-label">Cost:</span>
-                        <span id="upgrade-cost">50</span> nautical miles
-                    </div>
-                    <div class="upgrade-stat">
-                        <span class="stat-label">Drift Speed:</span>
-                        <span id="upgrade-benefit">1 → 2</span>
+                
+                <div class="resources-container">
+                    <h3>Resources</h3>
+                    <div class="resources-grid">
+                        <div class="resource-item">
+                            <span class="resource-emoji">🌿</span>
+                            <span class="resource-name">Seaweed:</span>
+                            <span id="resource-seaweed" class="resource-count">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-emoji">🪵</span>
+                            <span class="resource-name">Wood:</span>
+                            <span id="resource-wood" class="resource-count">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-emoji">📏</span>
+                            <span class="resource-name">Plank:</span>
+                            <span id="resource-plank" class="resource-count">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-emoji">🧵</span>
+                            <span class="resource-name">Cloth:</span>
+                            <span id="resource-cloth" class="resource-count">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-emoji">🔶</span>
+                            <span class="resource-name">Copper:</span>
+                            <span id="resource-copper" class="resource-count">0</span>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="vessel-info">
+                    <div id="vessel-display" class="vessel-display">🏊 Raft</div>
+                    <div id="vessel-schematic" class="vessel-schematic"></div>
+                </div>
+                
+                <div id="vessel-upgrade-panel" class="vessel-upgrade-panel">
+                    <h3>Vessel Upgrade</h3>
+                    <div class="upgrade-details">
+                        <div class="next-vessel">
+                            <span id="next-vessel-emoji" class="vessel-emoji">🚣</span>
+                            <span id="next-vessel-name">Small Boat</span>
+                        </div>
+                        <div class="upgrade-stats">
+                            <div class="upgrade-stat">
+                                <span class="stat-label">Cost:</span>
+                                <span id="upgrade-cost">50</span> nautical miles
+                            </div>
+                            <div class="upgrade-stat">
+                                <span class="stat-label">Drift Speed:</span>
+                                <span id="upgrade-benefit">1 → 2</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="upgrade-vessel-btn" class="upgrade-btn">Upgrade Vessel</button>
+                </div>
             </div>
-            <button id="upgrade-vessel-btn" class="upgrade-btn">Upgrade Vessel</button>
-        </div>
-        
-        <div class="journey-progress">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
+            
+            <!-- Right Column -->
+            <div class="game-column">
+                <div class="journey-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="milestones">
+                        <span class="milestone" style="left: 20%">10</span>
+                        <span class="milestone" style="left: 30%">100</span>
+                        <span class="milestone" style="left: 40%">1000</span>
+                        <span class="milestone" style="left: 60%">10000</span>
+                        <span class="milestone" style="left: 80%">100000</span>
+                        <span class="milestone" style="left: 95%">1000000</span>
+                    </div>
+                </div>
+                
+                <button id="anchor-btn">Drop Anchor</button>
+                <div id="discoveries-container"></div>
+                
+                <div class="status" id="status-message">Your ship is anchored. Set sail to begin your journey.</div>
+                
+                <div class="event-log" id="event-log">
+                    <h3>Recent Events</h3>
+                    <div id="events-container"></div>
+                </div>
             </div>
-            <div class="milestones">
-                <span class="milestone" style="left: 20%">10</span>
-                <span class="milestone" style="left: 30%">100</span>
-                <span class="milestone" style="left: 40%">1000</span>
-                <span class="milestone" style="left: 60%">10000</span>
-                <span class="milestone" style="left: 80%">100000</span>
-                <span class="milestone" style="left: 95%">1000000</span>
-            </div>
-        </div>
-        
-        <button id="anchor-btn">Drop Anchor</button>
-        <div id="discoveries-container"></div>
-        
-        <div class="status" id="status-message">Your ship is anchored. Set sail to begin your journey.</div>
-        
-        <div class="event-log" id="event-log">
-            <h3>Recent Events</h3>
-            <div id="events-container"></div>
         </div>
     </div>
 

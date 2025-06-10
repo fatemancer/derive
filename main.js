@@ -28,8 +28,6 @@ const anchorBtn = document.getElementById('anchor-btn');
 const statusMessage = document.getElementById('status-message');
 const discoveriesContainer = document.getElementById('discoveries-container');
 const eventsContainer = document.getElementById('events-container');
-const menuBtn = document.getElementById('menu-btn');
-const menu = document.getElementById('menu');
 const saveBtn = document.getElementById('save-btn');
 const exportBtn = document.getElementById('export-btn');
 const importBtn = document.getElementById('import-btn');
@@ -80,28 +78,6 @@ function startDrifting(skipNotifications = false) {
     statusMessage.textContent = `Your ${currentVessel.name} (${currentVessel.emoji}) is drifting with the current. Keep an eye out for discoveries!`;
 }
 
-// Menu button event listener
-menuBtn.addEventListener('click', () => {
-    if (menu.classList.contains('visible')) {
-        menu.classList.remove('visible');
-        menu.style.display = 'none';
-    } else {
-        menu.style.display = 'block';
-        setTimeout(() => {
-            menu.classList.add('visible');
-        }, 10);
-    }
-});
-
-// Close menu when clicking outside
-document.addEventListener('click', (event) => {
-    if (!menu.contains(event.target) && event.target !== menuBtn) {
-        menu.classList.remove('visible');
-        setTimeout(() => {
-            menu.style.display = 'none';
-        }, 300);
-    }
-});
 
 // Help button event listener
 helpBtn.addEventListener('click', () => {
@@ -121,28 +97,17 @@ upgradeVesselBtn.addEventListener('click', () => {
 // Save button event listener
 saveBtn.addEventListener('click', () => {
     saveGameState();
-    menu.classList.remove('visible');
-    setTimeout(() => {
-        menu.style.display = 'none';
-    }, 300);
+    showNotification("Game saved successfully!", "success");
 });
 
 // Export button event listener
 exportBtn.addEventListener('click', () => {
     exportSaveData();
-    menu.classList.remove('visible');
-    setTimeout(() => {
-        menu.style.display = 'none';
-    }, 300);
 });
 
 // Import button event listener
 importBtn.addEventListener('click', () => {
     fileInput.click();
-    menu.classList.remove('visible');
-    setTimeout(() => {
-        menu.style.display = 'none';
-    }, 300);
 });
 
 // File input change event listener
