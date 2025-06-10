@@ -1,3 +1,6 @@
+// Use vessel types from config
+const vesselTypes = GAME_CONFIG.vessels;
+
 // Game state object to track everything
 const gameState = {
     distance: 0,
@@ -6,7 +9,8 @@ const gameState = {
     isSailing: true,
     sailingInterval: null,
     discoveryInterval: null,
-    eventHistory: [] // Array to store the last 10 events
+    eventHistory: [], // Array to store the last 10 events
+    currentVesselIndex: 0 // Start with the raft
 };
 
 // DOM elements
@@ -24,6 +28,7 @@ const fileInput = document.getElementById('file-input');
 const helpBtn = document.getElementById('help-btn');
 const tutorial = document.getElementById('tutorial');
 const tutorialClose = document.getElementById('tutorial-close');
+const upgradeVesselBtn = document.getElementById('upgrade-vessel-btn');
 
 // Anchor handler - stop/resume drifting
 anchorBtn.addEventListener('click', () => {
@@ -44,22 +49,26 @@ anchorBtn.addEventListener('click', () => {
 
 // Start automatic drifting
 function startDrifting(skipNotifications = false) {
-    // Update distance every 2 seconds
+    // Get current vessel drift speed
+    const currentVessel = vesselTypes[gameState.currentVesselIndex];
+    const driftSpeed = currentVessel.driftSpeed;
+    
+    // Update distance based on vessel speed at the configured interval
     gameState.sailingInterval = setInterval(() => {
-        gameState.distance += 1;
+        gameState.distance += driftSpeed;
         updateUI(false); // Always show notifications during normal gameplay
         
-        // Save game state every 10 distance units
-        if (gameState.distance % 10 === 0) {
+        // Save game state at configured intervals
+        if (gameState.distance % GAME_CONFIG.progression.saveInterval === 0) {
             saveGameState();
         }
-    }, 2000);
+    }, GAME_CONFIG.progression.driftInterval);
     
     // Schedule discoveries every 15-30 seconds
     scheduleNextDiscovery();
     
-    // Update status message
-    statusMessage.textContent = "Your ship is drifting with the current. Keep an eye out for discoveries!";
+    // Update status message with vessel info
+    statusMessage.textContent = `Your ${currentVessel.name} (${currentVessel.emoji}) is drifting with the current. Keep an eye out for discoveries!`;
 }
 
 // Menu button event listener
@@ -93,6 +102,11 @@ helpBtn.addEventListener('click', () => {
 // Tutorial close button
 tutorialClose.addEventListener('click', () => {
     tutorial.classList.remove('visible');
+});
+
+// Upgrade vessel button event listener
+upgradeVesselBtn.addEventListener('click', () => {
+    upgradeVessel();
 });
 
 // Save button event listener
@@ -129,6 +143,90 @@ fileInput.addEventListener('change', (event) => {
     }
 });
 
+// Upgrade vessel to the next level
+function upgradeVessel() {
+    // Get current vessel
+    const currentVessel = vesselTypes[gameState.currentVesselIndex];
+    const nextVesselIndex = gameState.currentVesselIndex + 1;
+    
+    // Check if there's a next vessel available
+    if (nextVesselIndex >= vesselTypes.length) {
+        showNotification("You already have the best vessel available!", "info");
+        return;
+    }
+    
+    const nextVessel = vesselTypes[nextVesselIndex];
+    
+    // Check if player has enough distance
+    if (gameState.distance < currentVessel.upgradeCost) {
+        showNotification(`Not enough distance! You need ${currentVessel.upgradeCost} nautical miles to upgrade.`, "error");
+        return;
+    }
+    
+    // Deduct the cost
+    gameState.distance -= currentVessel.upgradeCost;
+    
+    // Upgrade the vessel
+    gameState.currentVesselIndex = nextVesselIndex;
+    
+    // Show upgrade message
+    showNotification(currentVessel.upgradeMessage, "success");
+    
+    // Add to event history
+    addEvent(`Upgraded from ${currentVessel.name} to ${nextVessel.name}`);
+    
+    // If currently sailing, restart with new speed
+    if (gameState.isSailing) {
+        clearInterval(gameState.sailingInterval);
+        startDrifting(false);
+    }
+    
+    // Update UI
+    updateUI();
+    updateVesselUI();
+    
+    // Save game state
+    saveGameState();
+}
+
+// Update the vessel UI
+function updateVesselUI() {
+    const currentVessel = vesselTypes[gameState.currentVesselIndex];
+    const vesselDisplay = document.getElementById('vessel-display');
+    
+    if (vesselDisplay) {
+        vesselDisplay.textContent = `${currentVessel.emoji} ${currentVessel.name}`;
+    }
+    
+    // Update upgrade panel
+    const upgradePanel = document.getElementById('vessel-upgrade-panel');
+    
+    if (upgradePanel) {
+        // Check if there's a next vessel
+        if (gameState.currentVesselIndex < vesselTypes.length - 1) {
+            const nextVessel = vesselTypes[gameState.currentVesselIndex + 1];
+            const upgradeCost = currentVessel.upgradeCost;
+            const canUpgrade = gameState.distance >= upgradeCost;
+            
+            // Update panel content
+            document.getElementById('next-vessel-name').textContent = nextVessel.name;
+            document.getElementById('next-vessel-emoji').textContent = nextVessel.emoji;
+            document.getElementById('upgrade-cost').textContent = upgradeCost;
+            document.getElementById('upgrade-benefit').textContent = `${currentVessel.driftSpeed} → ${nextVessel.driftSpeed}`;
+            
+            // Update upgrade button state
+            const upgradeBtn = document.getElementById('upgrade-vessel-btn');
+            upgradeBtn.disabled = !canUpgrade;
+            
+            // Show the panel
+            upgradePanel.style.display = 'block';
+        } else {
+            // Hide the panel if there are no more upgrades
+            upgradePanel.style.display = 'none';
+        }
+    }
+}
+
 // Initialize the game
 function initGame() {
     // Try to load saved game state
@@ -150,6 +248,9 @@ function initGame() {
     
     // Initialize progress bar (skip notifications during initialization)
     updateProgressBar(true);
+    
+    // Initialize vessel UI
+    updateVesselUI();
 }
 
 // Initialize the game when the DOM is fully loaded

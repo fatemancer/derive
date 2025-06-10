@@ -47,6 +47,31 @@
             Distance Traveled: <span id="distance-count">0</span> nautical miles
         </div>
         
+        <div class="vessel-info">
+            <div id="vessel-display" class="vessel-display">🏊 Raft</div>
+        </div>
+        
+        <div id="vessel-upgrade-panel" class="vessel-upgrade-panel">
+            <h3>Vessel Upgrade</h3>
+            <div class="upgrade-details">
+                <div class="next-vessel">
+                    <span id="next-vessel-emoji" class="vessel-emoji">🚣</span>
+                    <span id="next-vessel-name">Small Boat</span>
+                </div>
+                <div class="upgrade-stats">
+                    <div class="upgrade-stat">
+                        <span class="stat-label">Cost:</span>
+                        <span id="upgrade-cost">50</span> nautical miles
+                    </div>
+                    <div class="upgrade-stat">
+                        <span class="stat-label">Drift Speed:</span>
+                        <span id="upgrade-benefit">1 → 2</span>
+                    </div>
+                </div>
+            </div>
+            <button id="upgrade-vessel-btn" class="upgrade-btn">Upgrade Vessel</button>
+        </div>
+        
         <div class="journey-progress">
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
@@ -73,6 +98,7 @@
     </div>
 
     <!-- JavaScript Files -->
+    <script src="config.js"></script>
     <script src="ui.js"></script>
     <script src="discoveries.js"></script>
     <script src="storage.js"></script>

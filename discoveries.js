@@ -1,17 +1,12 @@
-// Discovery types with colors and messages
-const discoveryTypes = [
-    { name: "driftwood", color: "#8B4513", message: "You found driftwood! It can be used for repairs.", bonus: 2 },
-    { name: "bottle", color: "#2E8B57", message: "You found a message in a bottle with ancient wisdom!", bonus: 3 },
-    { name: "treasure", color: "#FFD700", message: "You found a small treasure chest with gold coins!", bonus: 5 },
-    { name: "coral", color: "#FF6B6B", message: "You discovered a beautiful piece of coral!", bonus: 2 },
-    { name: "seashell", color: "#E6E6FA", message: "You found a rare seashell!", bonus: 1 },
-    { name: "starfish", color: "#FF7F50", message: "You discovered a vibrant starfish!", bonus: 2 }
-];
+// Use discovery types from config
+const discoveryTypes = GAME_CONFIG.discoveries.types;
 
 // Schedule the next discovery to appear
 function scheduleNextDiscovery() {
-    // Random time between 15-30 seconds
-    const nextDiscoveryTime = 15000 + Math.random() * 15000;
+    // Random time between min and max interval from config
+    const minInterval = GAME_CONFIG.discoveries.minInterval;
+    const maxInterval = GAME_CONFIG.discoveries.maxInterval;
+    const nextDiscoveryTime = minInterval + Math.random() * (maxInterval - minInterval);
     
     gameState.discoveryInterval = setTimeout(() => {
         spawnDiscovery();
@@ -32,7 +27,7 @@ function spawnDiscovery() {
         id: discoveryId,
         type: discoveryType,
         position: positionX,
-        timeRemaining: 10 // 10 seconds before it disappears
+        timeRemaining: GAME_CONFIG.discoveries.duration / 1000 // Convert ms to seconds for display
     };
     
     // Add to game state
@@ -41,10 +36,10 @@ function spawnDiscovery() {
     // Create and add the visual element
     createDiscoveryElement(discovery);
     
-    // Set timeout to remove if not investigated
+    // Set timeout to remove if not investigated using duration from config
     setTimeout(() => {
         removeDiscovery(discoveryId, false);
-    }, 10000);
+    }, GAME_CONFIG.discoveries.duration);
 }
 
 // Create the visual element for a discovery

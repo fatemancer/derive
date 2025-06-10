@@ -5,6 +5,7 @@ function saveGameState() {
         isSailing: gameState.isSailing,
         eventHistory: gameState.eventHistory,
         reachedMilestones: gameState.reachedMilestones || [],
+        currentVesselIndex: gameState.currentVesselIndex || 0,
         savedAt: new Date().toISOString()
     };
     
@@ -26,6 +27,7 @@ function loadGameState() {
         gameState.distance = parsedData.distance || 0;
         gameState.eventHistory = parsedData.eventHistory || [];
         gameState.reachedMilestones = parsedData.reachedMilestones || [];
+        gameState.currentVesselIndex = parsedData.currentVesselIndex || 0;
         
         // Update sailing state
         gameState.isSailing = parsedData.isSailing;
@@ -58,8 +60,9 @@ function exportSaveData() {
         isSailing: gameState.isSailing,
         eventHistory: gameState.eventHistory,
         reachedMilestones: gameState.reachedMilestones || [],
+        currentVesselIndex: gameState.currentVesselIndex || 0,
         exportedAt: new Date().toISOString(),
-        gameVersion: "1.0"
+        gameVersion: "1.1"
     };
     
     const dataStr = JSON.stringify(saveData, null, 2);
@@ -102,6 +105,7 @@ function importSaveData(file) {
             gameState.isSailing = saveData.isSailing;
             gameState.eventHistory = saveData.eventHistory;
             gameState.reachedMilestones = saveData.reachedMilestones || [];
+            gameState.currentVesselIndex = saveData.currentVesselIndex || 0;
             
             // Restart sailing if needed
             if (gameState.isSailing) {
