@@ -988,6 +988,34 @@ button:disabled {
     color: #ef4444;
 }
 
+/* Material costs styling */
+.material-costs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.material-cost {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.material-cost.can-afford {
+    background-color: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: #10b981;
+}
+
+.material-cost.cannot-afford {
+    background-color: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+}
+
 .upgrade-sell-value {
     font-size: 14px;
     color: #f59e0b;

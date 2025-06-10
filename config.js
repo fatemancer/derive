@@ -17,6 +17,10 @@ const GAME_CONFIG = {
             emoji: '🧲',
             description: 'Automatically collects discoveries with a 10% chance',
             cost: 100,
+            materialCosts: [
+                { id: 'wood', amount: 5 },
+                { id: 'copper', amount: 2 }
+            ],
             effect: {
                 type: 'autocollect',
                 chance: 0.1
@@ -33,6 +37,10 @@ const GAME_CONFIG = {
             description: 'A simple wooden raft',
             driftSpeed: 1,
             upgradeCost: 50,
+            upgradeMaterialCosts: [
+                { id: 'wood', amount: 10 },
+                { id: 'seaweed', amount: 5 }
+            ],
             upgradeMessage: "You've upgraded to a small boat! Drift speed increased.",
             schematicSquares: 1 // Raft has 1 square
         },
@@ -43,6 +51,11 @@ const GAME_CONFIG = {
             description: 'A small rowing boat',
             driftSpeed: 2,
             upgradeCost: 200,
+            upgradeMaterialCosts: [
+                { id: 'wood', amount: 20 },
+                { id: 'plank', amount: 10 },
+                { id: 'cloth', amount: 5 }
+            ],
             upgradeMessage: "You've upgraded to a sailing boat! Drift speed increased significantly.",
             schematicSquares: 4 // Small boat has 4 squares
         },
@@ -53,6 +66,7 @@ const GAME_CONFIG = {
             description: 'A proper sailing boat with a sail',
             driftSpeed: 4,
             upgradeCost: null, // No more upgrades for now
+            upgradeMaterialCosts: null,
             upgradeMessage: null,
             schematicSquares: 6 // Sailing boat has 6 squares
         }

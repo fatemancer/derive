@@ -121,6 +121,40 @@ fileInput.addEventListener('change', (event) => {
     }
 });
 
+// Check if player has enough materials for a purchase
+function hasEnoughMaterials(materialCosts) {
+    if (!materialCosts) return true;
+    
+    for (const cost of materialCosts) {
+        if ((gameState.resources[cost.id] || 0) < cost.amount) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Deduct materials from player's inventory
+function deductMaterials(materialCosts) {
+    if (!materialCosts) return;
+    
+    for (const cost of materialCosts) {
+        gameState.resources[cost.id] -= cost.amount;
+    }
+}
+
+// Format material costs for display
+function formatMaterialCosts(materialCosts) {
+    if (!materialCosts || materialCosts.length === 0) return "";
+    
+    const costStrings = materialCosts.map(cost => {
+        const resourceType = resourceTypes.find(r => r.id === cost.id);
+        return `${cost.amount} ${resourceType.emoji}`;
+    });
+    
+    return costStrings.join(", ");
+}
+
 // Upgrade vessel to the next level
 function upgradeVessel() {
     // Get current vessel
@@ -137,12 +171,27 @@ function upgradeVessel() {
     
     // Check if player has enough distance
     if (gameState.distance < currentVessel.upgradeCost) {
-        showNotification(`Not enough distance! You need ${currentVessel.upgradeCost} nautical miles to upgrade.`, "error");
+        showNotification(`Not enough nautical miles! You need ${currentVessel.upgradeCost} nautical miles to upgrade.`, "error");
         return;
     }
     
-    // Deduct the cost
+    // Check if player has enough materials
+    if (!hasEnoughMaterials(currentVessel.upgradeMaterialCosts)) {
+        let errorMessage = `Not enough materials! You need: `;
+        currentVessel.upgradeMaterialCosts.forEach((cost, index) => {
+            const resourceType = resourceTypes.find(r => r.id === cost.id);
+            errorMessage += `${cost.amount} ${resourceType.name}`;
+            if (index < currentVessel.upgradeMaterialCosts.length - 1) {
+                errorMessage += ", ";
+            }
+        });
+        showNotification(errorMessage, "error");
+        return;
+    }
+    
+    // Deduct the costs
     gameState.distance -= currentVessel.upgradeCost;
+    deductMaterials(currentVessel.upgradeMaterialCosts);
     
     // Upgrade the vessel
     gameState.currentVesselIndex = nextVesselIndex;
@@ -196,7 +245,9 @@ function updateVesselUI() {
         if (gameState.currentVesselIndex < vesselTypes.length - 1) {
             const nextVessel = vesselTypes[gameState.currentVesselIndex + 1];
             const upgradeCost = currentVessel.upgradeCost;
-            const canUpgrade = gameState.distance >= upgradeCost;
+            const canAffordMiles = gameState.distance >= upgradeCost;
+            const canAffordMaterials = hasEnoughMaterials(currentVessel.upgradeMaterialCosts);
+            const canUpgrade = canAffordMiles && canAffordMaterials;
             
             // Update panel content
             document.getElementById('next-vessel-name').textContent = nextVessel.name;
@@ -204,9 +255,39 @@ function updateVesselUI() {
             document.getElementById('upgrade-cost').textContent = upgradeCost;
             document.getElementById('upgrade-benefit').textContent = `${currentVessel.driftSpeed} → ${nextVessel.driftSpeed}`;
             
+            // Update materials display
+            const materialsElement = document.getElementById('upgrade-materials');
+            if (materialsElement) {
+                if (currentVessel.upgradeMaterialCosts && currentVessel.upgradeMaterialCosts.length > 0) {
+                    let materialsHTML = '';
+                    currentVessel.upgradeMaterialCosts.forEach((cost, index) => {
+                        const resourceType = resourceTypes.find(r => r.id === cost.id);
+                        const playerHasEnough = (gameState.resources[cost.id] || 0) >= cost.amount;
+                        materialsHTML += `<span class="${playerHasEnough ? 'can-afford' : 'cannot-afford'}">${cost.amount} ${resourceType.emoji}</span>`;
+                        if (index < currentVessel.upgradeMaterialCosts.length - 1) {
+                            materialsHTML += ', ';
+                        }
+                    });
+                    materialsElement.innerHTML = materialsHTML;
+                } else {
+                    materialsElement.textContent = 'None';
+                }
+            }
+            
             // Update upgrade button state
             const upgradeBtn = document.getElementById('upgrade-vessel-btn');
             upgradeBtn.disabled = !canUpgrade;
+            
+            // Update button title with reason if disabled
+            if (!canUpgrade) {
+                if (!canAffordMiles) {
+                    upgradeBtn.title = "Not enough nautical miles";
+                } else {
+                    upgradeBtn.title = "Not enough materials";
+                }
+            } else {
+                upgradeBtn.title = "";
+            }
             
             // Show the panel
             upgradePanel.style.display = 'block';
@@ -336,8 +417,23 @@ function showUpgradeMenu(slotIndex) {
         const upgradeItem = document.createElement('div');
         upgradeItem.className = 'upgrade-item';
         
-        // Check if player has enough resources
+        // Check if player has enough nautical miles
         const canAfford = gameState.distance >= upgrade.cost;
+        
+        // Check if player has enough materials
+        const hasEnoughMats = hasEnoughMaterials(upgrade.materialCosts);
+        
+        // Format material costs for display
+        let materialCostsHtml = '';
+        if (upgrade.materialCosts && upgrade.materialCosts.length > 0) {
+            materialCostsHtml = '<div class="material-costs">';
+            upgrade.materialCosts.forEach(cost => {
+                const resourceType = resourceTypes.find(r => r.id === cost.id);
+                const playerHasEnough = (gameState.resources[cost.id] || 0) >= cost.amount;
+                materialCostsHtml += `<span class="material-cost ${playerHasEnough ? 'can-afford' : 'cannot-afford'}">${cost.amount} ${resourceType.emoji}</span>`;
+            });
+            materialCostsHtml += '</div>';
+        }
         
         upgradeItem.innerHTML = `
             <div class="upgrade-icon">${upgrade.emoji}</div>
@@ -347,6 +443,7 @@ function showUpgradeMenu(slotIndex) {
                 <div class="upgrade-cost ${canAfford ? 'can-afford' : 'cannot-afford'}">
                     Cost: ${upgrade.cost} nautical miles
                 </div>
+                ${materialCostsHtml}
             </div>
         `;
         
@@ -356,10 +453,10 @@ function showUpgradeMenu(slotIndex) {
             upgradeMenu.remove();
         });
         
-        // Disable if can't afford
-        if (!canAfford) {
+        // Disable if can't afford either nautical miles or materials
+        if (!canAfford || !hasEnoughMats) {
             upgradeItem.classList.add('disabled');
-            upgradeItem.title = "Not enough nautical miles";
+            upgradeItem.title = !canAfford ? "Not enough nautical miles" : "Not enough materials";
         }
         
         upgradesList.appendChild(upgradeItem);
@@ -422,20 +519,36 @@ function installUpgrade(upgradeId, slotIndex) {
     const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgradeId);
     if (!upgradeConfig) return;
     
-    // Check if player has enough resources
+    // Check if player has enough nautical miles
     if (gameState.distance < upgradeConfig.cost) {
         showNotification(`Not enough nautical miles to install ${upgradeConfig.name}. Need ${upgradeConfig.cost}.`, "error");
         return;
     }
     
-    // Deduct the cost
+    // Check if player has enough materials
+    if (!hasEnoughMaterials(upgradeConfig.materialCosts)) {
+        let errorMessage = `Not enough materials to install ${upgradeConfig.name}. Need: `;
+        upgradeConfig.materialCosts.forEach((cost, index) => {
+            const resourceType = resourceTypes.find(r => r.id === cost.id);
+            errorMessage += `${cost.amount} ${resourceType.name}`;
+            if (index < upgradeConfig.materialCosts.length - 1) {
+                errorMessage += ", ";
+            }
+        });
+        showNotification(errorMessage, "error");
+        return;
+    }
+    
+    // Deduct the costs
     gameState.distance -= upgradeConfig.cost;
+    deductMaterials(upgradeConfig.materialCosts);
     
     // Add the upgrade to installed upgrades
     gameState.installedUpgrades.push({
         upgradeId: upgradeId,
         slotIndex: slotIndex,
-        installedAt: new Date().toISOString()
+        installedAt: new Date().toISOString(),
+        materialCosts: upgradeConfig.materialCosts // Store the material costs for refund when selling
     });
     
     // Show success message
@@ -526,6 +639,9 @@ function sellUpgrade(upgradeId, slotIndex, sellValue) {
     
     if (upgradeIndex === -1) return;
     
+    // Get the installed upgrade
+    const installedUpgrade = gameState.installedUpgrades[upgradeIndex];
+    
     // Find the upgrade configuration
     const upgradeConfig = GAME_CONFIG.upgrades.find(u => u.id === upgradeId);
     if (!upgradeConfig) return;
@@ -536,11 +652,29 @@ function sellUpgrade(upgradeId, slotIndex, sellValue) {
     // Add the sell value to the player's distance
     gameState.distance += sellValue;
     
+    // Return a portion of the materials (50%)
+    let materialRefundMessage = "";
+    if (installedUpgrade.materialCosts) {
+        materialRefundMessage = " and ";
+        installedUpgrade.materialCosts.forEach((cost, index) => {
+            const refundAmount = Math.floor(cost.amount * 0.5); // Return 50% of materials
+            if (refundAmount > 0) {
+                gameState.resources[cost.id] += refundAmount;
+                const resourceType = resourceTypes.find(r => r.id === cost.id);
+                materialRefundMessage += `${refundAmount} ${resourceType.name}`;
+                if (index < installedUpgrade.materialCosts.length - 1 &&
+                    Math.floor(installedUpgrade.materialCosts[index + 1].amount * 0.5) > 0) {
+                    materialRefundMessage += ", ";
+                }
+            }
+        });
+    }
+    
     // Show success message
-    showNotification(`Sold ${upgradeConfig.name} for ${sellValue} nautical miles!`, "success");
+    showNotification(`Sold ${upgradeConfig.name} for ${sellValue} nautical miles${materialRefundMessage}!`, "success");
     
     // Add to event history
-    addEvent(`Sold ${upgradeConfig.name} from vessel slot ${slotIndex + 1} for ${sellValue} nautical miles`);
+    addEvent(`Sold ${upgradeConfig.name} from vessel slot ${slotIndex + 1} for ${sellValue} nautical miles${materialRefundMessage}`);
     
     // Update UI
     updateUI();
@@ -577,6 +711,22 @@ function showSellMenu(slotIndex, existingUpgrade) {
     // Calculate sell value (2/3 of original cost)
     const sellValue = Math.floor(upgradeConfig.cost * (2/3));
     
+    // Calculate material refunds (50% of original costs)
+    let materialRefunds = "";
+    if (existingUpgrade.materialCosts) {
+        existingUpgrade.materialCosts.forEach((cost, index) => {
+            const refundAmount = Math.floor(cost.amount * 0.5); // Return 50% of materials
+            if (refundAmount > 0) {
+                const resourceType = resourceTypes.find(r => r.id === cost.id);
+                materialRefunds += `${refundAmount} ${resourceType.emoji}`;
+                if (index < existingUpgrade.materialCosts.length - 1 &&
+                    Math.floor(existingUpgrade.materialCosts[index + 1].amount * 0.5) > 0) {
+                    materialRefunds += ", ";
+                }
+            }
+        });
+    }
+    
     // Create the sell menu
     const sellMenu = document.createElement('div');
     sellMenu.className = 'upgrade-menu sell-menu';
@@ -597,6 +747,7 @@ function showSellMenu(slotIndex, existingUpgrade) {
             <div class="upgrade-description">${upgradeConfig.description}</div>
             <div class="upgrade-sell-value">
                 Sell value: ${sellValue} nautical miles
+                ${materialRefunds ? `<br>+ ${materialRefunds}` : ''}
             </div>
         </div>
     `;
