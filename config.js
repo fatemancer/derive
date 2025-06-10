@@ -1,5 +1,14 @@
 // Game configuration
 const GAME_CONFIG = {
+    // Resources settings
+    resources: [
+        { id: 'seaweed', name: 'Seaweed', emoji: '🌿', rarity: 1 },
+        { id: 'wood', name: 'Wood', emoji: '🪵', rarity: 2 },
+        { id: 'plank', name: 'Plank', emoji: '📏', rarity: 3 },
+        { id: 'cloth', name: 'Cloth', emoji: '🧵', rarity: 4 },
+        { id: 'copper', name: 'Copper', emoji: '🔶', rarity: 5 }
+    ],
+    
     // Vessel settings
     vessels: [
         { 
@@ -37,12 +46,17 @@ const GAME_CONFIG = {
         maxInterval: 40000,  // Maximum time between discoveries (ms) - increased from 30000
         duration: 10000,     // How long discoveries remain visible (ms)
         types: [
-            { name: "driftwood", color: "#8B4513", message: "You found driftwood! It can be used for repairs.", bonus: 2 },
-            { name: "bottle", color: "#2E8B57", message: "You found a message in a bottle with ancient wisdom!", bonus: 3 },
-            { name: "treasure", color: "#FFD700", message: "You found a small treasure chest with gold coins!", bonus: 5 },
-            { name: "coral", color: "#FF6B6B", message: "You discovered a beautiful piece of coral!", bonus: 2 },
-            { name: "seashell", color: "#E6E6FA", message: "You found a rare seashell!", bonus: 1 },
-            { name: "starfish", color: "#FF7F50", message: "You discovered a vibrant starfish!", bonus: 2 }
+            { name: "driftwood", color: "#8B4513", message: "You found driftwood! It can be used for repairs.", bonus: 2, resource: null },
+            { name: "bottle", color: "#2E8B57", message: "You found a message in a bottle with ancient wisdom!", bonus: 3, resource: null },
+            { name: "treasure", color: "#FFD700", message: "You found a small treasure chest with gold coins!", bonus: 5, resource: null },
+            { name: "coral", color: "#FF6B6B", message: "You discovered a beautiful piece of coral!", bonus: 2, resource: null },
+            { name: "seashell", color: "#E6E6FA", message: "You found a rare seashell!", bonus: 1, resource: null },
+            { name: "starfish", color: "#FF7F50", message: "You discovered a vibrant starfish!", bonus: 2, resource: null },
+            { name: "seaweed_discovery", color: "#3CB371", message: "You found some seaweed floating in the water!", bonus: 1, resource: "seaweed" },
+            { name: "wood_discovery", color: "#8B4513", message: "You found a piece of wood floating by!", bonus: 2, resource: "wood" },
+            { name: "plank_discovery", color: "#DEB887", message: "You discovered a well-crafted plank!", bonus: 3, resource: "plank" },
+            { name: "cloth_discovery", color: "#B0C4DE", message: "You found a piece of cloth from a distant land!", bonus: 4, resource: "cloth" },
+            { name: "copper_discovery", color: "#CD7F32", message: "You discovered a rare piece of copper!", bonus: 5, resource: "copper" }
         ]
     },
     

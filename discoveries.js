@@ -17,7 +17,48 @@ function scheduleNextDiscovery() {
 // Spawn a new discovery
 function spawnDiscovery() {
     const discoveryId = gameState.nextDiscoveryId++;
-    const discoveryType = discoveryTypes[Math.floor(Math.random() * discoveryTypes.length)];
+    
+    // Weighted random selection based on rarity
+    // First, determine if this will be a resource discovery (50% chance)
+    const isResourceDiscovery = Math.random() < 0.5;
+    
+    let discoveryType;
+    
+    if (isResourceDiscovery) {
+        // Select a resource discovery based on rarity
+        // Higher rarity = less likely to appear
+        const resourceDiscoveries = discoveryTypes.filter(d => d.resource !== null);
+        
+        // Calculate total weight (inverse of rarity)
+        const totalWeight = resourceDiscoveries.reduce((sum, d) => {
+            const resource = resourceTypes.find(r => r.id === d.resource);
+            return sum + (resource ? (6 - resource.rarity) : 1); // 6 minus rarity so lower rarity has higher weight
+        }, 0);
+        
+        // Random number between 0 and totalWeight
+        let random = Math.random() * totalWeight;
+        
+        // Find the discovery that corresponds to this random value
+        for (const d of resourceDiscoveries) {
+            const resource = resourceTypes.find(r => r.id === d.resource);
+            const weight = resource ? (6 - resource.rarity) : 1;
+            
+            random -= weight;
+            if (random <= 0) {
+                discoveryType = d;
+                break;
+            }
+        }
+        
+        // Fallback in case something went wrong
+        if (!discoveryType) {
+            discoveryType = resourceDiscoveries[0];
+        }
+    } else {
+        // Select a regular discovery
+        const regularDiscoveries = discoveryTypes.filter(d => d.resource === null);
+        discoveryType = regularDiscoveries[Math.floor(Math.random() * regularDiscoveries.length)];
+    }
     
     // Random position along the horizon (10-90% of width)
     const positionX = 10 + Math.random() * 80;
@@ -106,14 +147,32 @@ function investigateDiscovery(discoveryId) {
     // Apply the distance bonus
     gameState.distance += discovery.type.bonus;
     
+    // Check if this discovery provides a resource
+    let resourceMessage = '';
+    if (discovery.type.resource) {
+        // Increment the resource count
+        gameState.resources[discovery.type.resource]++;
+        
+        // Find the resource details
+        const resourceDetails = resourceTypes.find(r => r.id === discovery.type.resource);
+        if (resourceDetails) {
+            resourceMessage = ` You collected ${resourceDetails.emoji} ${resourceDetails.name}!`;
+        }
+    }
+    
     // Show the message
-    statusMessage.textContent = discovery.type.message + ` (+${discovery.type.bonus} nautical miles)`;
+    statusMessage.textContent = discovery.type.message + ` (+${discovery.type.bonus} nautical miles)` + resourceMessage;
     
     // Show notification
-    showNotification(discovery.type.message + ` (+${discovery.type.bonus} nautical miles)`, 'info');
+    showNotification(discovery.type.message + ` (+${discovery.type.bonus} nautical miles)` + resourceMessage, 'info');
     
     // Add to event history
-    addEvent(`Investigated ${discovery.type.name} (+${discovery.type.bonus} nautical miles)`);
+    if (discovery.type.resource) {
+        const resourceDetails = resourceTypes.find(r => r.id === discovery.type.resource);
+        addEvent(`Investigated ${discovery.type.name} (+${discovery.type.bonus} nautical miles, +1 ${resourceDetails.name})`);
+    } else {
+        addEvent(`Investigated ${discovery.type.name} (+${discovery.type.bonus} nautical miles)`);
+    }
     
     // Remove the discovery
     removeDiscovery(discoveryId, true);

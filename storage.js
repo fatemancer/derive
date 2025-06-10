@@ -6,6 +6,13 @@ function saveGameState() {
         eventHistory: gameState.eventHistory,
         reachedMilestones: gameState.reachedMilestones || [],
         currentVesselIndex: gameState.currentVesselIndex || 0,
+        resources: gameState.resources || {
+            seaweed: 0,
+            wood: 0,
+            plank: 0,
+            cloth: 0,
+            copper: 0
+        },
         savedAt: new Date().toISOString()
     };
     
@@ -28,6 +35,15 @@ function loadGameState() {
         gameState.eventHistory = parsedData.eventHistory || [];
         gameState.reachedMilestones = parsedData.reachedMilestones || [];
         gameState.currentVesselIndex = parsedData.currentVesselIndex || 0;
+        
+        // Load resources or initialize with zeros if not present
+        gameState.resources = parsedData.resources || {
+            seaweed: 0,
+            wood: 0,
+            plank: 0,
+            cloth: 0,
+            copper: 0
+        };
         
         // Update sailing state
         gameState.isSailing = parsedData.isSailing;
@@ -61,8 +77,15 @@ function exportSaveData() {
         eventHistory: gameState.eventHistory,
         reachedMilestones: gameState.reachedMilestones || [],
         currentVesselIndex: gameState.currentVesselIndex || 0,
+        resources: gameState.resources || {
+            seaweed: 0,
+            wood: 0,
+            plank: 0,
+            cloth: 0,
+            copper: 0
+        },
         exportedAt: new Date().toISOString(),
-        gameVersion: "1.1"
+        gameVersion: "1.2"
     };
     
     const dataStr = JSON.stringify(saveData, null, 2);
@@ -106,6 +129,15 @@ function importSaveData(file) {
             gameState.eventHistory = saveData.eventHistory;
             gameState.reachedMilestones = saveData.reachedMilestones || [];
             gameState.currentVesselIndex = saveData.currentVesselIndex || 0;
+            
+            // Load resources or initialize with zeros if not present
+            gameState.resources = saveData.resources || {
+                seaweed: 0,
+                wood: 0,
+                plank: 0,
+                cloth: 0,
+                copper: 0
+            };
             
             // Restart sailing if needed
             if (gameState.isSailing) {

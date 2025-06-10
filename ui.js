@@ -13,8 +13,39 @@ function updateUI(skipNotifications = false) {
     // Update progress bar
     updateProgressBar(skipNotifications);
     
+    // Update resources display
+    updateResourcesDisplay();
+    
     // Note: We no longer update events display on every UI update
     // Events display is now only updated when new events are added
+}
+
+// Update the resources display
+function updateResourcesDisplay() {
+    // Update each resource count
+    for (const resourceType of resourceTypes) {
+        const resourceId = resourceType.id;
+        const resourceCount = gameState.resources[resourceId] || 0;
+        const resourceElement = document.getElementById(`resource-${resourceId}`);
+        
+        if (resourceElement) {
+            // Check if the value has changed
+            if (resourceElement.textContent !== resourceCount.toString()) {
+                // Add animation class if the value increased
+                if (parseInt(resourceElement.textContent) < resourceCount) {
+                    resourceElement.classList.add('resource-gain');
+                    
+                    // Remove the class after animation completes
+                    setTimeout(() => {
+                        resourceElement.classList.remove('resource-gain');
+                    }, 500);
+                }
+                
+                // Update the value
+                resourceElement.textContent = resourceCount;
+            }
+        }
+    }
 }
 
 // Update progress bar based on distance using logarithmic scale

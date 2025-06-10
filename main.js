@@ -1,5 +1,6 @@
-// Use vessel types from config
+// Use config values
 const vesselTypes = GAME_CONFIG.vessels;
+const resourceTypes = GAME_CONFIG.resources;
 
 // Game state object to track everything
 const gameState = {
@@ -10,7 +11,14 @@ const gameState = {
     sailingInterval: null,
     discoveryInterval: null,
     eventHistory: [], // Array to store the last 10 events
-    currentVesselIndex: 0 // Start with the raft
+    currentVesselIndex: 0, // Start with the raft
+    resources: {
+        seaweed: 0,
+        wood: 0,
+        plank: 0,
+        cloth: 0,
+        copper: 0
+    }
 };
 
 // DOM elements
